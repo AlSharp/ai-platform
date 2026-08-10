@@ -1,0 +1,105 @@
+services:
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    gpus: all
+    volumes:
+      - ollama:/root/.ollama
+    networks:
+      - ai-app
+      - ai-reasoning
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY}
+      ENABLE_SIGNUP: "true"
+    volumes:
+      - open_webui:/app/backend/data
+    networks:
+      - ai-app
+    depends_on:
+      - ollama
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - ai-edge
+      - ai-app
+    depends_on:
+      - open-webui
+      - ollama
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
+    networks:
+      - ai-edge
+    depends_on:
+      caddy:
+        condition: service_healthy
+
+  hermes-server:
+    image: nousresearch/hermes-agent:latest
+    container_name: hermes-server
+    restart: unless-stopped
+
+    volumes:
+      - type: bind
+        source: ./hermes/data
+        target: /opt/data
+
+      - type: bind
+        source: ./hermes/config/SOUL.md
+        target: /opt/data/SOUL.md
+        read_only: true
+
+    networks:
+      - ai-reasoning
+
+    environment:
+      HERMES_UID: "10000"
+      HERMES_GID: "10000"
+
+    command: ["gateway", "run"]
+
+networks:
+  ai-edge:
+  ai-app:
+  ai-reasoning:
+
+volumes:
+  ollama:
+    external: true
+  open_webui:
+  caddy_data:
+  caddy_config:
