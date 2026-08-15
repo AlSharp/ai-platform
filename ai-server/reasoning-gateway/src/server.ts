@@ -17,7 +17,7 @@ app.post<{
   Body: ReasoningRequest;
 }>('/reason', { schema: reasoningSchema }, async (request, reply) => {
   try {
-    return await reason(request.body);
+    return await reason(request.body, request.log);
   } catch (error) {
     request.log.error(error);
 
