@@ -1,14 +1,20 @@
+export type ReasoningRole = 'system' | 'user' | 'assistant';
+
 export type ReasoningMessage = {
-  role: "system" | "user" | "assistant";
+  role: ReasoningRole;
   content: string;
 };
 
+export type ReasoningTier = 'local' | 'frontier'
+
 export type ReasoningRequest = {
+  tier?: ReasoningTier,
   messages: ReasoningMessage[];
 };
 
 export type ReasoningResponse = {
-  provider: "ollama" | "hermes";
+  tier: ReasoningTier,
+  provider: 'ollama' | 'hermes';
   model: string;
   content: string;
 };

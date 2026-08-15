@@ -1,43 +1,28 @@
-import "dotenv/config";
-import Fastify from "fastify";
-import { getOllamaModel, reasonWithOllama } from "./providers/ollama";
-import { ReasoningRequest, ReasoningResponse } from "./types/reasoning";
+import 'dotenv/config';
+import Fastify from 'fastify';
+import { ReasoningRequest } from './types/reasoning';
+import { reason } from './services/reasoning';
+import { reasoningSchema } from './schemas/reasoning';
 
 const app = Fastify({
   logger: true,
 });
 
-app.get("/health", async () => ({
-  status: "ok",
-  service: "reasoning-gateway",
+app.get('/health', async () => ({
+  status: 'ok',
+  service: 'reasoning-gateway',
 }));
 
 app.post<{
   Body: ReasoningRequest;
-}>("/reason", async (request, reply) => {
-  const { messages } = request.body;
-
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return reply.status(400).send({
-      error: "messages is required",
-    });
-  }
-
+}>('/reason', { schema: reasoningSchema }, async (request, reply) => {
   try {
-    const content = await reasonWithOllama(messages);
-
-    const response: ReasoningResponse = {
-      provider: "ollama",
-      model: getOllamaModel(),
-      content,
-    };
-
-    return response;
+    return await reason(request.body);
   } catch (error) {
     request.log.error(error);
 
     return reply.status(502).send({
-      error: "reasoning provider unavailable",
+      error: 'reasoning provider unavailable',
     });
   }
 });
@@ -47,7 +32,7 @@ const port = Number(process.env.PORT ?? 9000);
 async function start() {
   try {
     await app.listen({
-      host: "0.0.0.0",
+      host: '0.0.0.0',
       port,
     });
   } catch (error) {

@@ -1,4 +1,4 @@
-import { ReasoningMessage } from "../types/reasoning";
+import { ReasoningMessage } from '../types/reasoning';
 
 type OllamaRequest = {
   model: string;
@@ -8,7 +8,7 @@ type OllamaRequest = {
 
 type OllamaResponse = {
   message: {
-    role: "assistant";
+    role: 'assistant';
     content: string;
   };
 };
@@ -19,7 +19,7 @@ if (!baseUrl) {
   throw new Error('OLLAMA_BASE_URL is not configured');
 }
 
-const model = process.env.OLLAMA_MODEL ?? "qwen3.5:9b";
+const model = process.env.OLLAMA_MODEL ?? 'qwen3.5:9b';
 
 export async function reasonWithOllama(
   messages: ReasoningMessage[],
@@ -33,9 +33,9 @@ export async function reasonWithOllama(
   const timeout = Number(process.env.OLLAMA_TIMEOUT_MS) ?? 120000;
 
   const response = await fetch(`${baseUrl}/api/chat`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(timeout),
