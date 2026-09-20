@@ -1,4 +1,5 @@
 import { ReasoningMessage } from '../types/reasoning';
+import { ProviderHttpError } from '../jobs/retry';
 
 type OllamaRequest = {
   model: string;
@@ -31,7 +32,7 @@ export async function reasonWithOllama(
     stream: false,
   };
 
-  const timeout = Number(process.env.OLLAMA_TIMEOUT_MS) ?? 120000;
+  const timeout = Number(process.env.OLLAMA_TIMEOUT_MS ?? 120000);
 
   const response = await fetch(`${baseUrl}/api/chat`, {
     method: 'POST',
@@ -48,9 +49,7 @@ export async function reasonWithOllama(
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Ollama request failed: ${response.status} ${response.statusText}`,
-    );
+    throw new ProviderHttpError('Ollama', response.status, response.statusText);
   }
 
   const data = (await response.json()) as OllamaResponse;

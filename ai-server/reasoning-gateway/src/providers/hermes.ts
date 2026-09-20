@@ -1,4 +1,5 @@
 import { ReasoningMessage } from '../types/reasoning';
+import { ProviderHttpError } from '../jobs/retry';
 
 type HermesRequest = {
   model: string;
@@ -28,9 +29,7 @@ if (!apiKey) {
   throw new Error('HERMES_API_KEY is not configured');
 }
 
-const timeout = Number(
-  process.env.HERMES_TIMEOUT_MS ?? 300000,
-);
+const timeout = Number(process.env.HERMES_TIMEOUT_MS ?? 300000);
 
 export async function reasonWithHermes(
   messages: ReasoningMessage[],
@@ -61,9 +60,7 @@ export async function reasonWithHermes(
   );
 
   if (!response.ok) {
-    throw new Error(
-      `Hermes request failed: ${response.status} ${response.statusText}`,
-    );
+    throw new ProviderHttpError('Hermes', response.status, response.statusText);
   }
 
   const data = (await response.json()) as HermesResponse;

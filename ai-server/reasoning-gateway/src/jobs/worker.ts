@@ -3,7 +3,7 @@ import type { FastifyBaseLogger } from "fastify";
 import type { ReasoningTier } from "../types/reasoning";
 import { reason } from "../services/reasoning";
 import type { JobRepository } from "./types";
-import { isRetryableError } from "./retry";
+import { isRetryableError, getRetryDelayMs } from "./retry";
 
 export class ReasoningWorker {
   private active = 0;
@@ -181,7 +181,7 @@ export class ReasoningWorker {
       const maxAttempts = Number(process.env.JOB_MAX_ATTEMPTS ?? 3);
 
       if (current && isRetryableError(error) && current.attempt < maxAttempts) {
-        const delayMs = 2000 * Math.pow(2, current.attempt - 1);
+        const delayMs = getRetryDelayMs(current.attempt);
         this.repository.requeue(jobId, delayMs);
 
         this.logger.warn(
