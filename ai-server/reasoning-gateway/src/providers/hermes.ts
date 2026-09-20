@@ -34,6 +34,7 @@ const timeout = Number(
 
 export async function reasonWithHermes(
   messages: ReasoningMessage[],
+  signal?: AbortSignal
 ): Promise<string> {
   const body: HermesRequest = {
     model: 'hermes-agent',
@@ -50,7 +51,12 @@ export async function reasonWithHermes(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(timeout),
+      signal: signal
+        ? AbortSignal.any([
+          signal,
+          AbortSignal.timeout(timeout)
+        ])
+        : AbortSignal.timeout(timeout),
     },
   );
 

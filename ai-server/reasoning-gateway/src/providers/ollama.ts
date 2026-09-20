@@ -23,6 +23,7 @@ const model = process.env.OLLAMA_MODEL ?? 'qwen3.5:9b';
 
 export async function reasonWithOllama(
   messages: ReasoningMessage[],
+  signal?: AbortSignal
 ): Promise<string> {
   const body: OllamaRequest = {
     model,
@@ -38,7 +39,12 @@ export async function reasonWithOllama(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(timeout),
+    signal: signal
+      ? AbortSignal.any([
+        signal,
+        AbortSignal.timeout(timeout)
+      ])
+      : AbortSignal.timeout(timeout),
   });
 
   if (!response.ok) {

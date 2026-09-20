@@ -32,22 +32,15 @@ export const reasoningSchema = {
   response: {
     200: {
       type: 'object',
-      required: ['tier', 'provider', 'model', 'content'],
+      required: ['jobId', 'status'],
       additionalProperties: false,
       properties: {
-        tier: {
-          type: 'string',
-          enum: ['local', 'frontier'],
+        jobId: {
+          type: "string",
         },
-        provider: {
-          type: 'string',
-          enum: ['ollama', 'hermes'],
-        },
-        model: {
-          type: 'string',
-        },
-        content: {
-          type: 'string',
+        status: {
+          type: "string",
+          enum: ["queued"],
         },
       },
     },
@@ -63,17 +56,6 @@ export const reasoningSchema = {
           type: 'string',
         },
         message: {
-          type: 'string',
-        },
-      },
-    },
-
-    502: {
-      type: 'object',
-      required: ['error'],
-      additionalProperties: false,
-      properties: {
-        error: {
           type: 'string',
         },
       },

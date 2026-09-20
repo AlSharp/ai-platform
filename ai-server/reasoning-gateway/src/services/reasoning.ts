@@ -5,14 +5,15 @@ import type { FastifyBaseLogger } from 'fastify';
 
 export async function reason(
   request: ReasoningRequest,
-  logger: FastifyBaseLogger
+  logger: FastifyBaseLogger,
+  signal: AbortSignal
 ): Promise<ReasoningResponse> {
   const { tier = 'local', messages } = request;
 
   const startedAt = Date.now();
 
   if (tier === 'frontier') {
-    const content = await reasonWithHermes(messages);
+    const content = await reasonWithHermes(messages, signal);
 
     logger.info({
       event: 'reasoning.completed',
@@ -30,7 +31,7 @@ export async function reason(
     }
   }
 
-  const content = await reasonWithOllama(messages);
+  const content = await reasonWithOllama(messages, signal);
 
   logger.info({
     event: 'reasoning.completed',
