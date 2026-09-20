@@ -80,6 +80,8 @@ export class ReasoningWorker {
   }
 
   private schedule(): void {
+    if (this.stopping) return;
+
     while (this.active < this.maxConcurrent) {
       const job = this.repository.claimNext(this.tier);
 
