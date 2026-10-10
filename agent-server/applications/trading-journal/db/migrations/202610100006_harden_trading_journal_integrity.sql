@@ -190,5 +190,3 @@ DROP FUNCTION tj_validate_lot_allocation();
 DROP TRIGGER tj_opening_lot_guard ON position_lots;
 DROP FUNCTION tj_validate_opening_lot();
 DROP INDEX position_lots_opening_leg_unique;
-ALTER TABLE executions DROP COLUMN record_origin;
-ALTER TABLE orders DROP COLUMN record_origin;
