@@ -1,7 +1,4 @@
-import dotenv from 'dotenv';
 import { buildApp } from './app.js';
-
-dotenv.config({ path: '../.env' });
 
 const port = Number(process.env.API_PORT);
 const host = process.env.API_HOST;
@@ -20,5 +17,5 @@ try {
   await app.listen({ port, host });
 } catch (error) {
   app.log.error(error);
-  process.exit(1);
+  process.exitCode = 1;
 }
