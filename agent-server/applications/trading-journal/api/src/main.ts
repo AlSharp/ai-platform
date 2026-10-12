@@ -1,4 +1,5 @@
 import { buildApp } from './app.js';
+import { createDbPool } from './db.js';
 
 const port = Number(process.env.API_PORT);
 const host = process.env.API_HOST;
@@ -11,11 +12,14 @@ if (!host) {
   throw new Error('API_HOST is required');
 }
 
-const app = buildApp();
+const db = createDbPool();
+const app = buildApp(db);
 
 try {
   await app.listen({ port, host });
 } catch (error) {
   app.log.error(error);
   process.exitCode = 1;
+  await app.close();
+  await db.end();
 }

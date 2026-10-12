@@ -14,6 +14,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
 
+    ports:
+      - 127.0.0.1:5432:5432
+
     networks:
       - agent-backend
 
@@ -34,7 +37,7 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - ./applications/trading-journal/.env
+      - ./applications/trading-journal/${APP_ENV_FILE:-.env}
     volumes:
       - ./applications/trading-journal/db/migrations:/db/migrations
     networks:
