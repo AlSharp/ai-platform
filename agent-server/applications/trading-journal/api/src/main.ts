@@ -15,11 +15,37 @@ if (!host) {
 const db = createDbPool();
 const app = buildApp(db);
 
+let shuttingDown = false;
+
+async function shutdown(signal: string) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+
+  app.log.info({ signal }, 'Shutting down Trading Journal API');
+
+  try {
+    await app.close();
+    await db.end();
+
+    app.log.info('Trading Journal API stopped');
+  } catch (error) {
+    app.log.error(error, 'Error during shutdown');
+    process.exitCode = 1;
+  }
+}
+
+process.once('SIGINT', () => {
+  void shutdown('SIGINT');
+});
+
+process.once('SIGTERM', () => {
+  void shutdown('SIGTERM');
+});
+
 try {
   await app.listen({ port, host });
 } catch (error) {
-  app.log.error(error);
+  app.log.error(error, 'Failed to start Trading Journal API');
   process.exitCode = 1;
-  await app.close();
-  await db.end();
+  await shutdown('startup failure');
 }
