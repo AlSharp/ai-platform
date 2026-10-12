@@ -1,10 +1,19 @@
 import Fastify from 'fastify';
 import type { Pool } from 'pg';
+import {
+  validatorCompiler,
+  serializerCompiler,
+} from 'fastify-type-provider-zod';
+
+import { registerAccountRoutes } from './modules/accounts/accounts.routes.js';
 
 export function buildApp(db: Pool) {
   const app = Fastify({
     logger: true,
   });
+
+  app.setValidatorCompiler(validatorCompiler);
+  app.setSerializerCompiler(serializerCompiler);
 
   app.get('/health', async () => {
     return {
@@ -21,7 +30,9 @@ export function buildApp(db: Pool) {
       app.log.error(error, 'Database readiness check failed');
       return reply.code(503).send({ status: 'unavailable' });
     }
-  })
+  });
+
+  registerAccountRoutes(app, db);
 
   return app;
 }
