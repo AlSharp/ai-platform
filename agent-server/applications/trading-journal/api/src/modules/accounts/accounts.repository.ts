@@ -45,6 +45,25 @@ export function createAccountsRepository(db: Pool) {
 
       return result.rows[0]!;
     },
+    async findById(id: string): Promise<Account | null> {
+      const result = await db.query<Account>(
+        `SELECT
+          id,
+          name,
+          broker,
+          mode,
+          currency,
+          to_char(
+            created_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS created_at
+        FROM accounts
+        WHERE id = $1`,
+        [id]
+      );
+
+      return result.rows[0] ?? null;
+    },
   };
 };
 

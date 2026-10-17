@@ -30,3 +30,9 @@ export type CreateAccountInput =
 
 export type CreateAccount =
   z.output<typeof createAccountSchema>;
+
+export const accountParamsSchema = z.object({
+  id: z.uuid(),
+});
+
+export type AccountParams = z.infer<typeof accountParamsSchema>;
