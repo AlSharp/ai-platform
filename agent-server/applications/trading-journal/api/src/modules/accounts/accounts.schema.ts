@@ -7,6 +7,7 @@ export const accountSchema = z.object({
   mode: z.enum(['LIVE', 'PAPER']),
   currency: z.string(),
   created_at: z.string(),
+  archived_at: z.string().nullable(),
 });
 
 export const listAccountsResponseSchema = z.object({
@@ -36,3 +37,9 @@ export const accountParamsSchema = z.object({
 });
 
 export type AccountParams = z.infer<typeof accountParamsSchema>;
+
+export const updateAccountSchema = z.object({
+  name: z.string().trim().min(1),
+});
+
+export type UpdateAccount = z.infer<typeof updateAccountSchema>;

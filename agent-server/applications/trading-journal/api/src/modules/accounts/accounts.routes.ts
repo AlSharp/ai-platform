@@ -69,7 +69,7 @@ export function registerAccountRoutes(
         return reply.code(404).send({
           statusCode: 404,
           code: 'ACCOUNT_NOT_FOUND',
-          error: 'NOT Found',
+          error: 'Not Found',
           message: 'Account not found'
         });
       }

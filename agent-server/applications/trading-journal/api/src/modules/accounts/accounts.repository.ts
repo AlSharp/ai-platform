@@ -14,7 +14,14 @@ export function createAccountsRepository(db: Pool) {
           to_char(
             created_at AT TIME ZONE 'UTC',
             'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
-          ) AS created_at
+          ) AS created_at,
+          CASE
+            WHEN archived_at IS NULL THEN NULL
+            ELSE to_char(
+              archived_at AT TIME ZONE 'UTC',
+              'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+            )
+          END AS archived_at
         FROM accounts
         ORDER BY created_at, id
       `);
@@ -34,7 +41,14 @@ export function createAccountsRepository(db: Pool) {
           to_char(
             created_at AT TIME ZONE 'UTC',
             'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
-          ) AS created_at`,
+          ) AS created_at,
+          CASE
+            WHEN archived_at IS NULL THEN NULL
+            ELSE to_char(
+              archived_at AT TIME ZONE 'UTC',
+              'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+            )
+          END AS archived_at`,
         [
           input.name,
           input.broker ?? null,
@@ -56,7 +70,14 @@ export function createAccountsRepository(db: Pool) {
           to_char(
             created_at AT TIME ZONE 'UTC',
             'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
-          ) AS created_at
+          ) AS created_at,
+          CASE
+            WHEN archived_at IS NULL THEN NULL
+            ELSE to_char(
+              archived_at AT TIME ZONE 'UTC',
+              'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+            )
+          END AS archived_at
         FROM accounts
         WHERE id = $1`,
         [id]
