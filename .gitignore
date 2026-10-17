@@ -1,6 +1,7 @@
 # Secrets
 **/.env
 **/.env.production
+**/.env.migration
 
 # Hermes
 ai-server/hermes/data/
