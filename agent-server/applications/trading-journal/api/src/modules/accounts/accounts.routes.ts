@@ -14,7 +14,6 @@ import {
   errorResponseSchema
 } from '../../shared/schemas/error.schemas.js';
 import { createAccountsRepository } from './accounts.repository.js';
-import { request } from 'node:http';
 
 export function registerAccountRoutes(
   app: FastifyInstance,
