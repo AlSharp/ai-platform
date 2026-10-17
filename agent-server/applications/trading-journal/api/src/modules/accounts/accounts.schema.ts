@@ -38,8 +38,15 @@ export const accountParamsSchema = z.object({
 
 export type AccountParams = z.infer<typeof accountParamsSchema>;
 
-export const updateAccountSchema = z.object({
+export const updateAccountSchema = z.strictObject({
   name: z.string().trim().min(1),
 });
 
 export type UpdateAccount = z.infer<typeof updateAccountSchema>;
+
+export const listAccountsQuerySchema = z.object({
+  status: z.enum(['active', 'archived', 'all']).default('active'),
+});
+
+export type ListAccountsQuery =
+  z.infer<typeof listAccountsQuerySchema>;
