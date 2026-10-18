@@ -36,3 +36,6 @@ prod-up:
 
 prod-status:
 	$(COMPOSE_PROD) ps
+
+postgres-start:
+	docker exec -it agent-server-postgres-1 psql -U postgres -d trading_journal

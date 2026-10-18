@@ -1,0 +1,53 @@
+@baseUrl = http://localhost:5301
+
+### Health check
+GET {{baseUrl}}/health
+
+### Database readiness
+GET {{baseUrl}}/ready
+
+### Create trading account
+# @name createAccount
+POST {{baseUrl}}/accounts
+Content-Type: application/json
+
+{
+  "name": "Trading Journal Test",
+  "broker": "Fidelity",
+  "mode": "PAPER",
+  "currency": "USD"
+}
+
+# {
+#   "id": "cfb0d9b2-3821-4a8b-94ca-a694832810a9",
+#   "name": "Trading Journal Test",
+#   "broker": "Fidelity",
+#   "mode": "PAPER",
+#   "currency": "USD",
+#   "created_at": "2026-10-18T21:07:28.595690Z",
+#   "archived_at": null
+# }
+
+### Get created account
+GET {{baseUrl}}/accounts/{{createAccount.response.body.$.id}}
+
+### Create trading campaign
+# @name createCampaign
+POST {{baseUrl}}/campaigns
+Content-Type: application/json
+
+{
+  "accountId": "{{createAccount.response.body.$.id}}",
+  "name": "LRCX Options Strategy",
+  "description": "Manual trading journal verification"
+}
+
+# {
+#   "id": "4e241a51-147b-4c25-b508-da34e6551a71",
+#   "account_id": "cfb0d9b2-3821-4a8b-94ca-a694832810a9",
+#   "name": "LRCX Options Strategy",
+#   "description": "Manual trading journal verification",
+#   "created_at": "2026-10-18T21:09:48.648913Z",
+#   "completed_at": null
+# }
+
