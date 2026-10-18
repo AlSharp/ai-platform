@@ -5,7 +5,7 @@ import type {
 } from './campaigns.schema.js';
 
 import type { Db } from '../../shared/db/db.types.js';
-import { NotFoundError } from '../../shared//errors.js';
+import { NotFoundError } from '../../shared/errors.js';
 
 const campaignColumns = `
   id,
@@ -82,7 +82,6 @@ export function createCampaignsRepository(db: Db) {
         `UPDATE campaigns
         SET completed_at = COALESCE(completed_at, now())
         WHERE id = $1
-          AND completed_at IS NULL
         RETURNING ${campaignColumns}`,
         [id]
       );
