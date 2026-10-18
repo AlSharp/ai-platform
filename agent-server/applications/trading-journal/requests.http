@@ -51,3 +51,61 @@ Content-Type: application/json
 #   "completed_at": null
 # }
 
+### Get created campaign
+GET {{baseUrl}}/campaigns/{{createCampaign.response.body.$.id}}
+
+### Get campaign trade history
+GET {{baseUrl}}/campaigns/{{createCampaign.response.body.$.id}}/trades
+
+### Complete trading campaign
+# @name completeCampaign
+PATCH {{baseUrl}}/campaigns/{{createCampaign.response.body.$.id}}/complete
+
+### Reopen trading campaign
+# @name reopenCampaign
+PATCH {{baseUrl}}/campaigns/{{createCampaign.response.body.$.id}}/reopen
+
+### List all campaigns for account
+GET {{baseUrl}}/campaigns?accountId={{createAccount.response.body.$.id}}&status=all
+
+### List active campaigns
+GET {{baseUrl}}/campaigns?accountId={{createAccount.response.body.$.id}}&status=active
+
+### List completed campaigns
+GET {{baseUrl}}/campaigns?accountId={{createAccount.response.body.$.id}}&status=completed
+
+### Update trading campaign
+# @name updateCampaign
+PATCH {{baseUrl}}/campaigns/{{createCampaign.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "LRCX Cash-Secured Put Strategy",
+  "description": "Updated during manual API verification"
+}
+
+### Update trading account
+# @name updateAccount
+PATCH {{baseUrl}}/accounts/{{createAccount.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Fidelity Trading Journal"
+}
+
+### Archive trading account
+# @name archiveAccount
+PATCH {{baseUrl}}/accounts/{{createAccount.response.body.$.id}}/archive
+
+### Restore trading account
+# @name restoreAccount
+PATCH {{baseUrl}}/accounts/{{createAccount.response.body.$.id}}/restore
+
+### List all accounts
+GET {{baseUrl}}/accounts
+
+### List active accounts
+GET {{baseUrl}}/accounts?status=active
+
+### List archived accounts
+GET {{baseUrl}}/accounts?status=archived
