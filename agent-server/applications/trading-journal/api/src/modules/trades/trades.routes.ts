@@ -9,9 +9,7 @@ import {
   createTradeWithCampaignResponseSchema,
   getTradePathParamsSchema,
   getTradeResponseSchema,
-  listCampaignTradesResponseSchema
 } from './trades.schema.js';
-import { campaignPathParamsSchema } from '../campaigns/campaigns.schema.js';
 
 import { errorResponseSchema } from '../../shared/schemas/error.schemas.js';
 
@@ -85,39 +83,6 @@ export function registerTradeRoutes(
       const legs = await repository.findLegsByTradeId(trade.id);
 
       return { trade, legs };
-    }
-  );
-
-  app.withTypeProvider<ZodTypeProvider>().get(
-    '/campaigns/:id/trades',
-    {
-      schema: {
-        params: campaignPathParamsSchema,
-        response: {
-          200: listCampaignTradesResponseSchema,
-          404: errorResponseSchema,
-        },
-      },
-    },
-    async (request, reply) => {
-      const campaign = await repository.findById(
-        request.params.id
-      );
-
-      if (!campaign) {
-        return reply.code(404).send({
-          statusCode: 404,
-          code: 'CAMPAIGN_NOT_FOUND',
-          error: 'Not Found',
-          message: 'Campaign not found',
-        });
-      }
-
-      const trades = await repository.findByCampaignId(
-        request.params.id
-      );
-
-      return reply.code(200).send({ trades });
     }
   );
 }
