@@ -1,10 +1,9 @@
-import type { Pool, PoolClient } from 'pg';
 import type {
   Instrument,
   ResolveOptionParams,
 } from './instruments.schema.js';
 
-type Db = Pick<Pool | PoolClient, 'query'>;
+import type { Db } from '../../shared/db/db.types.js';
 
 export function createInstrumentsRepository(db: Db) {
   const repository = {

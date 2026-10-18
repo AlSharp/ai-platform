@@ -1,12 +1,12 @@
-import type { Pool } from 'pg';
 import type {
   Account,
   CreateAccount,
   UpdateAccount,
   ListAccountsQuery
 } from './accounts.schema.js';
+import type { Db } from '../../shared/db/db.types.js';
 
-export function createAccountsRepository(db: Pool) {
+export function createAccountsRepository(db: Db) {
   return {
     async findAll(
       status: ListAccountsQuery['status'] = 'active'

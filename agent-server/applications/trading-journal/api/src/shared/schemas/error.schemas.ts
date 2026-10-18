@@ -8,3 +8,10 @@ export const errorResponseSchema = z.object({
 });
 
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
+
+export class NotFoundError extends Error {
+  constructor(message = 'Resource not found') {
+    super(message);
+    this.name = 'NotFoundError';
+  }
+}
