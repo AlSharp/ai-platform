@@ -3,11 +3,11 @@ import type { Pool } from 'pg';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 
 import {
-  accountSchema,
-  createAccountSchema,
+  accountRecordSchema,
+  createAccountRequestSchema,
   listAccountsResponseSchema,
-  accountParamsSchema,
-  updateAccountSchema,
+  accountPathParamsSchema,
+  updateAccountRequestSchema,
   listAccountsQuerySchema
 } from './accounts.schema.js';
 import {
@@ -41,9 +41,9 @@ export function registerAccountRoutes(
     '/accounts',
     {
       schema: {
-        body: createAccountSchema,
+        body: createAccountRequestSchema,
         response: {
-          201: accountSchema,
+          201: accountRecordSchema,
         },
       },
     },
@@ -58,9 +58,9 @@ export function registerAccountRoutes(
     '/accounts/:id',
     {
       schema: {
-        params: accountParamsSchema,
+        params: accountPathParamsSchema,
         response: {
-          200: accountSchema,
+          200: accountRecordSchema,
           404: errorResponseSchema,
         },
       },
@@ -85,10 +85,10 @@ export function registerAccountRoutes(
     '/accounts/:id',
     {
       schema: {
-        params: accountParamsSchema,
-        body: updateAccountSchema,
+        params: accountPathParamsSchema,
+        body: updateAccountRequestSchema,
         response: {
-          200: accountSchema,
+          200: accountRecordSchema,
           404: errorResponseSchema,
         },
       },
@@ -116,9 +116,9 @@ export function registerAccountRoutes(
     '/accounts/:id/archive',
     {
       schema: {
-        params: accountParamsSchema,
+        params: accountPathParamsSchema,
         response: {
-          200: accountSchema,
+          200: accountRecordSchema,
           404: errorResponseSchema,
         },
       },
@@ -143,9 +143,9 @@ export function registerAccountRoutes(
     '/accounts/:id/restore',
     {
       schema: {
-        params: accountParamsSchema,
+        params: accountPathParamsSchema,
         response: {
-          200: accountSchema,
+          200: accountRecordSchema,
           404: errorResponseSchema,
         },
       },

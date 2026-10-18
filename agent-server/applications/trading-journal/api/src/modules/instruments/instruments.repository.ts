@@ -1,15 +1,15 @@
 import type {
-  Instrument,
-  ResolveStockParams,
-  ResolveOptionParams,
+  InstrumentRecord,
+  ResolveStockInput,
+  ResolveOptionInput,
 } from './instruments.schema.js';
 
 import type { Db } from '../../shared/db/db.types.js';
 
 export function createInstrumentsRepository(db: Db) {
   const repository = {
-    async resolveStock(params: ResolveStockParams): Promise<Instrument> {
-      const result = await db.query<Instrument>(
+    async resolveStock(params: ResolveStockInput): Promise<InstrumentRecord> {
+      const result = await db.query<InstrumentRecord>(
         `INSERT INTO instruments (
            symbol,
            instrument_type,
@@ -37,12 +37,12 @@ export function createInstrumentsRepository(db: Db) {
 
       return result.rows[0]!;
     },
-    async resolveOption(input: ResolveOptionParams): Promise<Instrument> {
+    async resolveOption(input: ResolveOptionInput): Promise<InstrumentRecord> {
       const underlying = await repository.resolveStock({
         symbol: input.underlyingSymbol,
       });
 
-      const result = await db.query<Instrument>(
+      const result = await db.query<InstrumentRecord>(
         `INSERT INTO instruments (
           symbol,
           instrument_type,

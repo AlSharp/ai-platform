@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const instrumentSchema = z.object({
+export const instrumentRecordSchema = z.object({
   id: z.uuid(),
   symbol: z.string(),
   instrument_type: z.enum(['STOCK', 'OPTION']),
@@ -12,18 +12,18 @@ export const instrumentSchema = z.object({
   created_at: z.string(),
 });
 
-export type Instrument = z.infer<typeof instrumentSchema>;
+export type InstrumentRecord = z.infer<typeof instrumentRecordSchema>;
 
 const stockSymbolSchema = z.string()
   .trim()
   .toUpperCase()
   .regex(/^[A-Z][A-Z0-9.-]*$/);
 
-export const resolveStockSchema = z.object({
+export const resolveStockInputSchema = z.object({
   symbol: stockSymbolSchema,
 });
 
-export type ResolveStockParams = z.infer<typeof resolveStockSchema>;
+export type ResolveStockInput = z.infer<typeof resolveStockInputSchema>;
 
 const positiveDecimalSchema = z.string()
   .regex(/^\d+(\.\d+)?$/)
@@ -33,7 +33,7 @@ const positiveDecimalSchema = z.string()
 
 const expirationDateSchema = z.iso.date();
 
-export const resolveOptionSchema = z.object({
+export const resolveOptionInputSchema = z.object({
   underlyingSymbol: stockSymbolSchema,
   optionType: z.enum(['CALL', 'PUT']),
   expirationDate: expirationDateSchema,
@@ -41,4 +41,4 @@ export const resolveOptionSchema = z.object({
   multiplier: positiveDecimalSchema.default('100'),
 });
 
-export type ResolveOptionParams = z.infer<typeof resolveOptionSchema>;
+export type ResolveOptionInput = z.infer<typeof resolveOptionInputSchema>;

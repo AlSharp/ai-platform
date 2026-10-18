@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const campaignSchema = z.object({
+export const campaignRecordSchema = z.object({
   id: z.uuid(),
   account_id: z.uuid(),
   name: z.string(),
@@ -9,28 +9,28 @@ export const campaignSchema = z.object({
   completed_at: z.string().nullable(),
 });
 
-export type Campaign = z.infer<typeof campaignSchema>;
+export type CampaignRecord = z.infer<typeof campaignRecordSchema>;
 
-export const createCampaignSchema = z.object({
+export const createCampaignRequestSchema = z.object({
   accountId: z.uuid(),
   name: z.string().trim().min(1).max(200),
   description: z.string().trim().nullable().optional(),
 });
 
-export type CreateCampaignParams = z.infer<typeof createCampaignSchema>;
+export type CreateCampaignRequest = z.infer<typeof createCampaignRequestSchema>;
 
-export const listCampaignsSchema = z.object({
+export const listCampaignsQuerySchema = z.object({
   accountId: z.uuid(),
   status: z.enum(['active', 'completed', 'all']).default('active'),
 });
 
-export type ListCampaignsParams = z.infer<typeof listCampaignsSchema>;
+export type ListCampaignsQuery = z.infer<typeof listCampaignsQuerySchema>;
 
 export const listCampaignsResponseSchema = z.object({
-  campaigns: z.array(campaignSchema),
+  campaigns: z.array(campaignRecordSchema),
 });
 
-export const updateCampaignSchema = z.strictObject({
+export const updateCampaignRequestSchema = z.strictObject({
   name: z.string().trim().min(1).max(200).optional(),
   description: z.string().trim().nullable().optional(),
 }).refine(
@@ -38,8 +38,8 @@ export const updateCampaignSchema = z.strictObject({
   { message: 'At least one field must be provided' }
 );
 
-export type UpdateCampaignParams = z.infer<typeof updateCampaignSchema>;
+export type UpdateCampaignRequest = z.infer<typeof updateCampaignRequestSchema>;
 
-export const campaignParamsSchema = z.object({
+export const campaignPathParamsSchema = z.object({
   id: z.uuid(),
 });

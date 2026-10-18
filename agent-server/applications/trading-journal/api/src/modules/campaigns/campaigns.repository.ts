@@ -1,8 +1,8 @@
 import type {
-  Campaign,
-  CreateCampaignParams,
-  ListCampaignsParams,
-  UpdateCampaignParams,
+  CampaignRecord,
+  CreateCampaignRequest,
+  ListCampaignsQuery,
+  UpdateCampaignRequest,
 } from './campaigns.schema.js';
 
 import type { Db } from '../../shared/db/db.types.js';
@@ -28,8 +28,8 @@ const campaignColumns = `
 
 export function createCampaignsRepository(db: Db) {
   return {
-    async create(params: CreateCampaignParams): Promise<Campaign> {
-      const result = await db.query<Campaign>(
+    async create(params: CreateCampaignRequest): Promise<CampaignRecord> {
+      const result = await db.query<CampaignRecord>(
         `INSERT INTO campaigns (
           account_id,
           name,
@@ -47,8 +47,8 @@ export function createCampaignsRepository(db: Db) {
       return result.rows[0]!;
     },
 
-    async findById(id: string): Promise<Campaign | null> {
-      const result = await db.query<Campaign>(
+    async findById(id: string): Promise<CampaignRecord | null> {
+      const result = await db.query<CampaignRecord>(
         `SELECT ${campaignColumns}
          FROM campaigns
          WHERE id = $1`,
@@ -58,7 +58,7 @@ export function createCampaignsRepository(db: Db) {
       return result.rows[0] ?? null;
     },
 
-    async list(params: ListCampaignsParams): Promise<Campaign[]> {
+    async list(params: ListCampaignsQuery): Promise<CampaignRecord[]> {
       const statusCondition =
         params.status === 'active'
           ? 'AND completed_at IS NULL'
@@ -66,7 +66,7 @@ export function createCampaignsRepository(db: Db) {
             ? 'AND completed_at IS NOT NULL'
             : '';
 
-      const result = await db.query<Campaign>(
+      const result = await db.query<CampaignRecord>(
         `SELECT ${campaignColumns}
         FROM campaigns
         WHERE account_id = $1
@@ -78,8 +78,8 @@ export function createCampaignsRepository(db: Db) {
       return result.rows;
     },
 
-    async complete(id: string): Promise<Campaign> {
-      const result = await db.query<Campaign>(
+    async complete(id: string): Promise<CampaignRecord> {
+      const result = await db.query<CampaignRecord>(
         `UPDATE campaigns
         SET completed_at = COALESCE(completed_at, now())
         WHERE id = $1
@@ -94,8 +94,8 @@ export function createCampaignsRepository(db: Db) {
       return result.rows[0];
     },
 
-    async reopen(id: string): Promise<Campaign> {
-      const result = await db.query<Campaign>(
+    async reopen(id: string): Promise<CampaignRecord> {
+      const result = await db.query<CampaignRecord>(
         `UPDATE campaigns
         SET completed_at = NULL
         WHERE id = $1
@@ -112,9 +112,9 @@ export function createCampaignsRepository(db: Db) {
 
     async update(
       id: string,
-      params: UpdateCampaignParams
-    ): Promise<Campaign> {
-      const result = await db.query<Campaign>(
+      params: UpdateCampaignRequest
+    ): Promise<CampaignRecord> {
+      const result = await db.query<CampaignRecord>(
         `UPDATE campaigns
         SET
           name = COALESCE($2, name),

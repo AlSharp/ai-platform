@@ -2,14 +2,13 @@ import type { Pool } from 'pg';
 import type { Db } from '../../shared/db/db.types.js';
 
 import type {
-  CreateTradeParams,
-  Trade,
-  Leg,
+  CreateTradeRequest,
+  LegRecord,
   TradeResult
 } from './trades.schema.js';
 
 import type {
-  CreateTradeWithCampaignParams,
+  CreateTradeWithCampaignRequest,
   CreateTradeWithCampaignResponse,
 } from './trades.schema.js';
 
@@ -20,7 +19,7 @@ import { createInstrumentsRepository } from '../instruments/instruments.reposito
 
 async function insertTrade(
   db: Db,
-  params: CreateTradeParams
+  params: CreateTradeRequest
 ): Promise<TradeResult> {
   const trades = createTradesRepository(db);
   const instruments = createInstrumentsRepository(db);
@@ -34,7 +33,7 @@ async function insertTrade(
     notes: params.notes,
   });
 
-  const legs: Leg[] = [];
+  const legs: LegRecord[] = [];
 
   for (const leg of params.legs) {
     const instrument =
@@ -58,8 +57,8 @@ async function insertTrade(
 export function createTradesService(pool: Pool) {
   return {
     async create(
-      params: CreateTradeParams
-    ): Promise<{ trade: Trade; legs: Leg[] }> {
+      params: CreateTradeRequest
+    ): Promise<TradeResult> {
       const client = await pool.connect();
 
       try {
@@ -85,7 +84,7 @@ export function createTradesService(pool: Pool) {
     },
 
     async createWithCampaign(
-      params: CreateTradeWithCampaignParams
+      params: CreateTradeWithCampaignRequest
     ): Promise<CreateTradeWithCampaignResponse> {
       const client = await pool.connect();
 

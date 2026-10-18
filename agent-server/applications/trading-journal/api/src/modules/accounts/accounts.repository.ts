@@ -1,7 +1,7 @@
 import type {
-  Account,
-  CreateAccount,
-  UpdateAccount,
+  AccountRecord,
+  CreateAccountRequest,
+  UpdateAccountRequest,
   ListAccountsQuery
 } from './accounts.schema.js';
 import type { Db } from '../../shared/db/db.types.js';
@@ -10,8 +10,8 @@ export function createAccountsRepository(db: Db) {
   return {
     async findAll(
       status: ListAccountsQuery['status'],
-    ): Promise<Account[]> {
-      const result = await db.query<Account>(
+    ): Promise<AccountRecord[]> {
+      const result = await db.query<AccountRecord>(
         `SELECT
           id,
           name,
@@ -40,8 +40,8 @@ export function createAccountsRepository(db: Db) {
 
       return result.rows;
     },
-    async create(input: CreateAccount): Promise<Account> {
-      const result = await db.query<Account>(
+    async create(input: CreateAccountRequest): Promise<AccountRecord> {
+      const result = await db.query<AccountRecord>(
         `INSERT INTO accounts (name, broker, mode, currency)
         VALUES ($1, $2, $3, $4)
         RETURNING
@@ -71,8 +71,8 @@ export function createAccountsRepository(db: Db) {
 
       return result.rows[0]!;
     },
-    async findById(id: string): Promise<Account | null> {
-      const result = await db.query<Account>(
+    async findById(id: string): Promise<AccountRecord | null> {
+      const result = await db.query<AccountRecord>(
         `SELECT
           id,
           name,
@@ -99,9 +99,9 @@ export function createAccountsRepository(db: Db) {
     },
     async update(
       id: string,
-      input: UpdateAccount
-    ): Promise<Account | null> {
-      const result = await db.query<Account>(
+      input: UpdateAccountRequest
+    ): Promise<AccountRecord | null> {
+      const result = await db.query<AccountRecord>(
         `UPDATE accounts
         SET name = $2
         WHERE id = $1
@@ -128,8 +128,8 @@ export function createAccountsRepository(db: Db) {
       return result.rows[0] ?? null;
     },
 
-    async archive(id: string): Promise<Account | null> {
-      const result = await db.query<Account>(
+    async archive(id: string): Promise<AccountRecord | null> {
+      const result = await db.query<AccountRecord>(
         `UPDATE accounts
         SET archived_at = COALESCE(archived_at, now())
         WHERE id = $1
@@ -149,8 +149,8 @@ export function createAccountsRepository(db: Db) {
       return result.rows[0] ?? null;
     },
 
-    async restore(id: string): Promise<Account | null> {
-      const result = await db.query<Account>(
+    async restore(id: string): Promise<AccountRecord | null> {
+      const result = await db.query<AccountRecord>(
         `UPDATE accounts
         SET archived_at = NULL
         WHERE id = $1

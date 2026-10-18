@@ -1,18 +1,18 @@
 import { z } from 'zod';
 
 import {
-  resolveStockSchema,
-  resolveOptionSchema,
+  resolveStockInputSchema,
+  resolveOptionInputSchema,
 } from '../instruments/instruments.schema.js';
 
 import {
-  createCampaignSchema,
-  campaignSchema,
+  createCampaignRequestSchema,
+  campaignRecordSchema,
 } from '../campaigns/campaigns.schema.js';
 
 const stockLegSchema = z.object({
   instrumentType: z.literal('STOCK'),
-  instrument: resolveStockSchema,
+  instrument: resolveStockInputSchema,
   direction: z.enum(['LONG', 'SHORT']),
   quantity: z.string().regex(/^\d+(\.\d+)?$/)
     .refine(value => Number(value) > 0),
@@ -20,13 +20,13 @@ const stockLegSchema = z.object({
 
 const optionLegSchema = z.object({
   instrumentType: z.literal('OPTION'),
-  instrument: resolveOptionSchema,
+  instrument: resolveOptionInputSchema,
   direction: z.enum(['LONG', 'SHORT']),
   quantity: z.string().regex(/^\d+(\.\d+)?$/)
     .refine(value => Number(value) > 0),
 });
 
-export const createTradeSchema = z.object({
+export const createTradeRequestSchema = z.object({
   campaignId: z.uuid(),
   actorId: z.uuid(),
 
@@ -55,10 +55,10 @@ export const createTradeSchema = z.object({
   ).min(1),
 });
 
-export type CreateTradeParams = z.infer<typeof createTradeSchema>;
-export type CreateTradeLeg = CreateTradeParams['legs'][number];
+export type CreateTradeRequest = z.infer<typeof createTradeRequestSchema>;
+export type CreateTradeLeg = CreateTradeRequest['legs'][number];
 
-export const tradeSchema = z.object({
+export const tradeRecordSchema = z.object({
   id: z.uuid(),
   campaign_id: z.uuid(),
   actor_id: z.uuid(),
@@ -74,9 +74,9 @@ export const tradeSchema = z.object({
   created_at: z.string(),
 });
 
-export type Trade = z.infer<typeof tradeSchema>;
+export type TradeRecord = z.infer<typeof tradeRecordSchema>;
 
-export const legSchema = z.object({
+export const legRecordSchema = z.object({
   id: z.uuid(),
   trade_id: z.uuid(),
   instrument_id: z.uuid(),
@@ -85,26 +85,26 @@ export const legSchema = z.object({
   created_at: z.string(),
 });
 
-export type Leg = z.infer<typeof legSchema>;
+export type LegRecord = z.infer<typeof legRecordSchema>;
 
-export const insertTradeSchema = createTradeSchema.omit({
+export const tradeInsertSchema = createTradeRequestSchema.omit({
   legs: true,
 });
 
-export type InsertTradeParams = z.infer<typeof insertTradeSchema>;
+export type TradeInsert = z.infer<typeof tradeInsertSchema>;
 
-export const insertLegSchema = z.object({
+export const legInsertSchema = z.object({
   tradeId: z.uuid(),
   instrumentId: z.uuid(),
   direction: z.enum(['LONG', 'SHORT']),
   quantity: z.string(),
 });
 
-export type InsertLegParams = z.infer<typeof insertLegSchema>;
+export type LegInsert = z.infer<typeof legInsertSchema>;
 
 export const createTradeResponseSchema = z.object({
-  trade: tradeSchema,
-  legs: z.array(legSchema),
+  trade: tradeRecordSchema,
+  legs: z.array(legRecordSchema),
 });
 
 export type CreateTradeResponse = z.infer<
@@ -112,27 +112,35 @@ export type CreateTradeResponse = z.infer<
 >;
 
 export type TradeResult = {
-  trade: Trade;
-  legs: Leg[];
+  trade: TradeRecord;
+  legs: LegRecord[];
 };
 
-export const createTradeWithCampaignSchema = z.object({
-  campaign: createCampaignSchema,
-  trade: createTradeSchema.omit({
+export const createTradeWithCampaignRequestSchema = z.object({
+  campaign: createCampaignRequestSchema,
+  trade: createTradeRequestSchema.omit({
     campaignId: true,
   }),
 });
 
-export type CreateTradeWithCampaignParams = z.infer<
-  typeof createTradeWithCampaignSchema
+export type CreateTradeWithCampaignRequest = z.infer<
+  typeof createTradeWithCampaignRequestSchema
 >;
 
 export const createTradeWithCampaignResponseSchema = z.object({
-  campaign: campaignSchema,
-  trade: tradeSchema,
-  legs: z.array(legSchema),
+  campaign: campaignRecordSchema,
+  trade: tradeRecordSchema,
+  legs: z.array(legRecordSchema),
 });
 
 export type CreateTradeWithCampaignResponse = z.infer<
   typeof createTradeWithCampaignResponseSchema
 >;
+
+export const getTradePathParamsSchema = z.object({
+  id: z.uuid(),
+});
+
+export const getTradeResponseSchema = createTradeResponseSchema;
+
+export type GetTradeResponse = z.infer<typeof getTradeResponseSchema>;

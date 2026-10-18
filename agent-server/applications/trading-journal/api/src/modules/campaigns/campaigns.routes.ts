@@ -4,12 +4,12 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 
 import {
-  campaignSchema,
-  createCampaignSchema,
-  campaignParamsSchema,
-  listCampaignsSchema,
+  campaignRecordSchema,
+  createCampaignRequestSchema,
+  campaignPathParamsSchema,
+  listCampaignsQuerySchema,
   listCampaignsResponseSchema,
-  updateCampaignSchema
+  updateCampaignRequestSchema
 } from './campaigns.schema.js';
 
 import { createCampaignsRepository } from './campaigns.repository.js';
@@ -28,9 +28,9 @@ export function registerCampaignRoutes(
     '/campaigns',
     {
       schema: {
-        body: createCampaignSchema,
+        body: createCampaignRequestSchema,
         response: {
-          201: campaignSchema,
+          201: campaignRecordSchema,
         },
       },
     },
@@ -45,9 +45,9 @@ export function registerCampaignRoutes(
     '/campaigns/:id',
     {
       schema: {
-        params: campaignParamsSchema,
+        params: campaignPathParamsSchema,
         response: {
-          200: campaignSchema,
+          200: campaignRecordSchema,
           404: errorResponseSchema,
         },
       },
@@ -72,7 +72,7 @@ export function registerCampaignRoutes(
     '/campaigns',
     {
       schema: {
-        querystring: listCampaignsSchema,
+        querystring: listCampaignsQuerySchema,
         response: {
           200: listCampaignsResponseSchema,
         },
@@ -89,10 +89,10 @@ export function registerCampaignRoutes(
     '/campaigns/:id',
     {
       schema: {
-        params: campaignParamsSchema,
-        body: updateCampaignSchema,
+        params: campaignPathParamsSchema,
+        body: updateCampaignRequestSchema,
         response: {
-          200: campaignSchema,
+          200: campaignRecordSchema,
           404: errorResponseSchema,
         },
       },
@@ -111,9 +111,9 @@ export function registerCampaignRoutes(
     '/campaigns/:id/complete',
     {
       schema: {
-        params: campaignParamsSchema,
+        params: campaignPathParamsSchema,
         response: {
-          200: campaignSchema,
+          200: campaignRecordSchema,
           404: errorResponseSchema,
         },
       },
@@ -127,9 +127,9 @@ export function registerCampaignRoutes(
     '/campaigns/:id/reopen',
     {
       schema: {
-        params: campaignParamsSchema,
+        params: campaignPathParamsSchema,
         response: {
-          200: campaignSchema,
+          200: campaignRecordSchema,
           404: errorResponseSchema,
         },
       },

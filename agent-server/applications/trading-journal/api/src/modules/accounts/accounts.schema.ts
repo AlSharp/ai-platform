@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const accountSchema = z.object({
+export const accountRecordSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   broker: z.string().nullable(),
@@ -11,38 +11,38 @@ export const accountSchema = z.object({
 });
 
 export const listAccountsResponseSchema = z.object({
-  accounts: z.array(accountSchema),
+  accounts: z.array(accountRecordSchema),
 });
 
-export type Account = z.infer<typeof accountSchema>;
+export type AccountRecord = z.infer<typeof accountRecordSchema>;
 
 export type ListAccountsResponse =
   z.infer<typeof listAccountsResponseSchema>;
 
-export const createAccountSchema = z.object({
+export const createAccountRequestSchema = z.object({
   name: z.string().trim().min(1),
   broker: z.string().trim().optional(),
   mode: z.enum(['LIVE', 'PAPER']),
   currency: z.string().regex(/^[A-Z]{3}$/).default('USD'),
 });
 
-export type CreateAccountInput =
-  z.input<typeof createAccountSchema>;
+export type CreateAccountRequestInput =
+  z.input<typeof createAccountRequestSchema>;
 
-export type CreateAccount =
-  z.output<typeof createAccountSchema>;
+export type CreateAccountRequest =
+  z.output<typeof createAccountRequestSchema>;
 
-export const accountParamsSchema = z.object({
+export const accountPathParamsSchema = z.object({
   id: z.uuid(),
 });
 
-export type AccountParams = z.infer<typeof accountParamsSchema>;
+export type AccountPathParams = z.infer<typeof accountPathParamsSchema>;
 
-export const updateAccountSchema = z.strictObject({
+export const updateAccountRequestSchema = z.strictObject({
   name: z.string().trim().min(1),
 });
 
-export type UpdateAccount = z.infer<typeof updateAccountSchema>;
+export type UpdateAccountRequest = z.infer<typeof updateAccountRequestSchema>;
 
 export const listAccountsQuerySchema = z.object({
   status: z.enum(['active', 'archived', 'all']).default('active'),
