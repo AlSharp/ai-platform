@@ -2,6 +2,7 @@ import type {
   Campaign,
   CreateCampaignParams,
   ListCampaignsParams,
+  UpdateCampaignParams,
 } from './campaigns.schema.js';
 
 import type { Db } from '../../shared/db/db.types.js';
@@ -100,6 +101,35 @@ export function createCampaignsRepository(db: Db) {
         WHERE id = $1
         RETURNING ${campaignColumns}`,
         [id]
+      );
+
+      if (!result.rows[0]) {
+        throw new NotFoundError('Campaign not found');
+      }
+
+      return result.rows[0];
+    },
+
+    async update(
+      id: string,
+      params: UpdateCampaignParams
+    ): Promise<Campaign> {
+      const result = await db.query<Campaign>(
+        `UPDATE campaigns
+        SET
+          name = COALESCE($2, name),
+          description = CASE
+            WHEN $3::boolean THEN $4::text
+            ELSE description
+          END
+        WHERE id = $1
+        RETURNING ${campaignColumns}`,
+        [
+          id,
+          params.name ?? null,
+          params.description !== undefined,
+          params.description ?? null,
+        ]
       );
 
       if (!result.rows[0]) {

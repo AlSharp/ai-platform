@@ -5,7 +5,8 @@ import {
   serializerCompiler,
 } from 'fastify-type-provider-zod';
 
-import { registerAccountRoutes } from './modules/accounts/accounts.routes.js';
+import {registerAccountRoutes } from './modules/accounts/accounts.routes.js';
+import { registerCampaignRoutes } from './modules/campaigns/campaigns.routes.js';
 
 export function buildApp(db: Pool) {
   const app = Fastify({
@@ -33,6 +34,7 @@ export function buildApp(db: Pool) {
   });
 
   registerAccountRoutes(app, db);
+  registerCampaignRoutes(app, db);
 
   return app;
 }

@@ -25,3 +25,21 @@ export const listCampaignsSchema = z.object({
 });
 
 export type ListCampaignsParams = z.infer<typeof listCampaignsSchema>;
+
+export const listCampaignsResponseSchema = z.object({
+  campaigns: z.array(campaignSchema),
+});
+
+export const updateCampaignSchema = z.strictObject({
+  name: z.string().trim().min(1).max(200).optional(),
+  description: z.string().trim().nullable().optional(),
+}).refine(
+  data => Object.keys(data).length > 0,
+  { message: 'At least one field must be provided' }
+);
+
+export type UpdateCampaignParams = z.infer<typeof updateCampaignSchema>;
+
+export const campaignParamsSchema = z.object({
+  id: z.uuid(),
+});
