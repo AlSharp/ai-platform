@@ -1,5 +1,6 @@
 import type {
   Instrument,
+  ResolveStockParams,
   ResolveOptionParams,
 } from './instruments.schema.js';
 
@@ -7,13 +8,7 @@ import type { Db } from '../../shared/db/db.types.js';
 
 export function createInstrumentsRepository(db: Db) {
   const repository = {
-    async resolveStock(symbol: string): Promise<Instrument> {
-      const normalizedSymbol = symbol.trim().toUpperCase();
-
-      if (!/^[A-Z][A-Z0-9.-]*$/.test(normalizedSymbol)) {
-        throw new Error('Invalid stock symbol');
-      }
-
+    async resolveStock(params: ResolveStockParams): Promise<Instrument> {
       const result = await db.query<Instrument>(
         `INSERT INTO instruments (
            symbol,
@@ -37,31 +32,15 @@ export function createInstrumentsRepository(db: Db) {
              created_at AT TIME ZONE 'UTC',
              'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
            ) AS created_at`,
-        [normalizedSymbol]
+        [params.symbol]
       );
 
       return result.rows[0]!;
     },
     async resolveOption(input: ResolveOptionParams): Promise<Instrument> {
-      const underlying = await repository.resolveStock(
-        input.underlyingSymbol
-      );
-
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(input.expirationDate) ||
-          !Number.isFinite(Date.parse(`${input.expirationDate}T00:00:00Z`)) ||
-          new Date(`${input.expirationDate}T00:00:00Z`)
-            .toISOString().slice(0, 10) !== input.expirationDate) {
-        throw new Error('Invalid option expiration date');
-      }
-
-      if (!/^\d+(\.\d+)?$/.test(input.strike) ||
-          !/^\d+(\.\d+)?$/.test(input.multiplier ?? '100') ||
-          Number(input.strike) <= 0 ||
-          Number(input.multiplier ?? '100') <= 0) {
-        throw new Error('Invalid option strike or multiplier');
-      }
-
-      const multiplier = input.multiplier ?? '100';
+      const underlying = await repository.resolveStock({
+        symbol: input.underlyingSymbol,
+      });
 
       const result = await db.query<Instrument>(
         `INSERT INTO instruments (
@@ -109,7 +88,7 @@ export function createInstrumentsRepository(db: Db) {
           input.optionType,
           input.expirationDate,
           input.strike,
-          multiplier,
+          input.multiplier,
         ]
       );
 

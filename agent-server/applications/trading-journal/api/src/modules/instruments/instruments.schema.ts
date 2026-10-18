@@ -14,10 +14,31 @@ export const instrumentSchema = z.object({
 
 export type Instrument = z.infer<typeof instrumentSchema>;
 
-export type ResolveOptionParams = {
-  underlyingSymbol: string;
-  optionType: 'CALL' | 'PUT';
-  expirationDate: string;
-  strike: string;
-  multiplier?: string;
-};
+const stockSymbolSchema = z.string()
+  .trim()
+  .toUpperCase()
+  .regex(/^[A-Z][A-Z0-9.-]*$/);
+
+export const resolveStockSchema = z.object({
+  symbol: stockSymbolSchema,
+});
+
+export type ResolveStockParams = z.infer<typeof resolveStockSchema>;
+
+const positiveDecimalSchema = z.string()
+  .regex(/^\d+(\.\d+)?$/)
+  .refine(value => Number(value) > 0, {
+    message: 'Must be greater than zero',
+  });
+
+const expirationDateSchema = z.iso.date();
+
+export const resolveOptionSchema = z.object({
+  underlyingSymbol: stockSymbolSchema,
+  optionType: z.enum(['CALL', 'PUT']),
+  expirationDate: expirationDateSchema,
+  strike: positiveDecimalSchema,
+  multiplier: positiveDecimalSchema.default('100'),
+});
+
+export type ResolveOptionParams = z.infer<typeof resolveOptionSchema>;

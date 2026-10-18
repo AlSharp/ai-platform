@@ -5,7 +5,7 @@ import type {
 } from './campaigns.schema.js';
 
 import type { Db } from '../../shared/db/db.types.js';
-import { NotFoundError } from '../../shared/schemas/error.schemas.js';
+import { NotFoundError } from '../../shared//errors.js';
 
 const campaignColumns = `
   id,
@@ -80,7 +80,7 @@ export function createCampaignsRepository(db: Db) {
     async complete(id: string): Promise<Campaign> {
       const result = await db.query<Campaign>(
         `UPDATE campaigns
-        SET completed_at = now()
+        SET completed_at = COALESCE(completed_at, now())
         WHERE id = $1
           AND completed_at IS NULL
         RETURNING ${campaignColumns}`,
@@ -99,7 +99,6 @@ export function createCampaignsRepository(db: Db) {
         `UPDATE campaigns
         SET completed_at = NULL
         WHERE id = $1
-          AND completed_at IS NOT NULL
         RETURNING ${campaignColumns}`,
         [id]
       );

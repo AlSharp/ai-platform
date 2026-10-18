@@ -9,7 +9,7 @@ import type { Db } from '../../shared/db/db.types.js';
 export function createAccountsRepository(db: Db) {
   return {
     async findAll(
-      status: ListAccountsQuery['status'] = 'active'
+      status: ListAccountsQuery['status'],
     ): Promise<Account[]> {
       const result = await db.query<Account>(
         `SELECT
