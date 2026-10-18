@@ -4,7 +4,7 @@ import type { Db } from '../../shared/db/db.types.js';
 import type {
   CreateTradeRequest,
   LegRecord,
-  TradeResult
+  CreateTradeResponse
 } from './trades.schema.js';
 
 import type {
@@ -20,7 +20,7 @@ import { createInstrumentsRepository } from '../instruments/instruments.reposito
 async function insertTrade(
   db: Db,
   params: CreateTradeRequest
-): Promise<TradeResult> {
+): Promise<CreateTradeResponse> {
   const trades = createTradesRepository(db);
   const instruments = createInstrumentsRepository(db);
 
@@ -58,7 +58,7 @@ export function createTradesService(pool: Pool) {
   return {
     async create(
       params: CreateTradeRequest
-    ): Promise<TradeResult> {
+    ): Promise<CreateTradeResponse> {
       const client = await pool.connect();
 
       try {

@@ -5,6 +5,7 @@ import type {
   LegRecord,
   TradeInsert,
   LegInsert,
+  GetTradeResponse
 } from './trades.schema.js';
 
 export function createTradesRepository(db: Db) {
@@ -123,5 +124,59 @@ export function createTradesRepository(db: Db) {
 
       return result.rows;
     },
+
+    async findByCampaignId(
+      campaignId: string
+    ): Promise<GetTradeResponse[]> {
+      const result = await db.query<{
+        trade: TradeRecord;
+        legs: LegRecord[];
+      }>(
+        `SELECT
+          jsonb_build_object(
+            'id', t.id,
+            'campaign_id', t.campaign_id,
+            'actor_id', t.actor_id,
+            'source', t.source,
+            'action_type', t.action_type,
+            'occurred_at', to_char(
+              t.occurred_at AT TIME ZONE 'UTC',
+              'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+            ),
+            'notes', t.notes,
+            'created_at', to_char(
+              t.created_at AT TIME ZONE 'UTC',
+              'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+            )
+          ) AS trade,
+          COALESCE(
+            (
+              SELECT jsonb_agg(
+                jsonb_build_object(
+                  'id', l.id,
+                  'trade_id', l.trade_id,
+                  'instrument_id', l.instrument_id,
+                  'direction', l.direction,
+                  'quantity', l.quantity::text,
+                  'created_at', to_char(
+                    l.created_at AT TIME ZONE 'UTC',
+                    'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+                  )
+                )
+                ORDER BY l.created_at ASC, l.id ASC
+              )
+              FROM legs l
+              WHERE l.trade_id = t.id
+            ),
+            '[]'::jsonb
+          ) AS legs
+        FROM trades t
+        WHERE t.campaign_id = $1
+        ORDER BY t.occurred_at ASC, t.id ASC`,
+        [campaignId]
+      );
+
+      return result.rows;
+    }
   };
 }

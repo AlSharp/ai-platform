@@ -111,11 +111,6 @@ export type CreateTradeResponse = z.infer<
   typeof createTradeResponseSchema
 >;
 
-export type TradeResult = {
-  trade: TradeRecord;
-  legs: LegRecord[];
-};
-
 export const createTradeWithCampaignRequestSchema = z.object({
   campaign: createCampaignRequestSchema,
   trade: createTradeRequestSchema.omit({
@@ -144,3 +139,11 @@ export const getTradePathParamsSchema = z.object({
 export const getTradeResponseSchema = createTradeResponseSchema;
 
 export type GetTradeResponse = z.infer<typeof getTradeResponseSchema>;
+
+export const listCampaignTradesResponseSchema = z.object({
+  trades: z.array(getTradeResponseSchema),
+});
+
+export type ListCampaignTradesResponse = z.infer<
+  typeof listCampaignTradesResponseSchema
+>;
