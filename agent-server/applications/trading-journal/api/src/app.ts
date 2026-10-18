@@ -7,6 +7,7 @@ import {
 
 import {registerAccountRoutes } from './modules/accounts/accounts.routes.js';
 import { registerCampaignRoutes } from './modules/campaigns/campaigns.routes.js';
+import { registerTradeRoutes } from './modules/trades/trades.routes.js';
 
 export function buildApp(db: Pool) {
   const app = Fastify({
@@ -35,6 +36,7 @@ export function buildApp(db: Pool) {
 
   registerAccountRoutes(app, db);
   registerCampaignRoutes(app, db);
+  registerTradeRoutes(app, db);
 
   return app;
 }
