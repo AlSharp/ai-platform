@@ -70,6 +70,7 @@ async function insertTrade(
       tradeId: trade.id,
       instrumentId: instrument.id,
       direction: leg.direction,
+      tradeType: leg.tradeType,
       quantity: leg.quantity,
     });
 

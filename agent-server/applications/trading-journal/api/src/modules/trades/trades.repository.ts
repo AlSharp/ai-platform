@@ -58,9 +58,10 @@ export function createTradesRepository(db: Db) {
           trade_id,
           instrument_id,
           direction,
+          trade_type,
           quantity
         )
-        VALUES ($1, $2, $3, $4::numeric)
+        VALUES ($1, $2, $3, $4, $5::numeric)
         RETURNING
           id,
           trade_id,

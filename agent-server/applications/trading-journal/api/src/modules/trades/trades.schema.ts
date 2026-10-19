@@ -59,18 +59,27 @@ const createTradeExecutionSchema = executionInsertSchema.omit({
   legId: true,
 });
 
+export const tradeTypeSchema = z.enum([
+  'BUY_TO_OPEN',
+  'SELL_TO_OPEN',
+  'BUY_TO_CLOSE',
+  'SELL_TO_CLOSE',
+]);
+
 const stockLegSchema = z.object({
   instrumentType: z.literal('STOCK'),
   instrument: resolveStockInputSchema,
   direction: z.enum(['LONG', 'SHORT']),
   quantity: positiveDecimalSchema,
   executions: z.array(createTradeExecutionSchema).min(1),
+  tradeType: tradeTypeSchema,
 });
 
 const optionLegSchema = z.object({
   instrumentType: z.literal('OPTION'),
   instrument: resolveOptionInputSchema,
   direction: z.enum(['LONG', 'SHORT']),
+  tradeType: tradeTypeSchema,
   quantity: positiveDecimalSchema,
   executions: z.array(createTradeExecutionSchema).min(1),
 });
@@ -130,6 +139,7 @@ export const legRecordSchema = z.object({
   trade_id: z.uuid(),
   instrument_id: z.uuid(),
   direction: z.enum(['LONG', 'SHORT']),
+  tradeType: tradeTypeSchema,
   quantity: z.string(),
   created_at: z.string(),
 });
@@ -146,6 +156,7 @@ export const legInsertSchema = z.object({
   tradeId: z.uuid(),
   instrumentId: z.uuid(),
   direction: z.enum(['LONG', 'SHORT']),
+  tradeType: tradeTypeSchema,
   quantity: z.string(),
 });
 
