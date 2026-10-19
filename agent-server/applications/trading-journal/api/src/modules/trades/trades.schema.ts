@@ -285,3 +285,15 @@ export const positionLotExecutionInsertSchema = z.object({
 export type PositionLotExecutionInsert = z.infer<
   typeof positionLotExecutionInsertSchema
 >;
+
+export const closablePositionLotRecordSchema = z.object({
+  id: z.uuid(),
+  account_id: z.uuid(),
+  instrument_id: z.uuid(),
+  position_side: z.enum(['LONG', 'SHORT']),
+  remaining_quantity: nonNegativeDecimalSchema,
+});
+
+export type ClosablePositionLotRecord = z.infer<
+  typeof closablePositionLotRecordSchema
+>;

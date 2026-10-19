@@ -14,6 +14,7 @@ import type {
   PositionLotExecutionInsert,
   LotAllocationInsert,
   LotAllocationRecord,
+  ClosablePositionLotRecord
 } from './trades.schema.js';
 
 export function createTradesRepository(db: Db) {
@@ -337,6 +338,48 @@ export function createTradesRepository(db: Db) {
       );
 
       return result.rows[0]!;
+    },
+
+    async findClosablePositionLot(
+      positionLotId: string
+    ): Promise<ClosablePositionLotRecord | null> {
+      await db.query(
+        `SELECT id
+        FROM position_lots
+        WHERE id = $1
+        FOR UPDATE`,
+        [positionLotId]
+      );
+      const result = await db.query<ClosablePositionLotRecord>(
+        `SELECT
+          pl.id,
+          c.account_id,
+          l.instrument_id,
+          pl.position_side,
+          (
+            pl.opened_quantity -
+            COALESCE(SUM(la.quantity), 0)
+          )::text AS remaining_quantity
+        FROM position_lots pl
+        JOIN legs l
+          ON l.id = pl.opening_leg_id
+        JOIN trades t
+          ON t.id = l.trade_id
+        JOIN campaigns c
+          ON c.id = t.campaign_id
+        LEFT JOIN lot_allocations la
+          ON la.position_lot_id = pl.id
+        WHERE pl.id = $1
+        GROUP BY
+          pl.id,
+          c.account_id,
+          l.instrument_id,
+          pl.position_side,
+          pl.opened_quantity`,
+        [positionLotId]
+      );
+
+      return result.rows[0] ?? null;
     },
   };
 }
