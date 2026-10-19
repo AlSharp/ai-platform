@@ -10,13 +10,29 @@ import {
   campaignRecordSchema,
 } from '../campaigns/campaigns.schema.js';
 
+const positiveDecimalSchema = z.string()
+  .regex(
+    /^(?:0|[1-9]\d{0,13})(?:\.\d{1,6})?$/,
+    'Must be a decimal with at most 14 integer digits and 6 fractional digits'
+  )
+  .refine(
+    value => /[1-9]/.test(value),
+    'Must be greater than zero'
+  );
+
+const nonNegativeDecimalSchema = z.string()
+  .regex(
+    /^(?:0|[1-9]\d{0,13})(?:\.\d{1,6})?$/,
+    'Must be a non-negative decimal with at most 14 integer digits and 6 fractional digits'
+  );
+
 export const executionRecordSchema = z.object({
   id: z.uuid(),
   leg_id: z.uuid(),
   broker_execution_id: z.string().nullable(),
-  quantity: z.string(),
-  price: z.string(),
-  fees: z.string(),
+  quantity: positiveDecimalSchema,
+  price: nonNegativeDecimalSchema,
+  fees: nonNegativeDecimalSchema.default('0'),
   executed_at: z.string(),
   created_at: z.string(),
 });
@@ -47,8 +63,7 @@ const stockLegSchema = z.object({
   instrumentType: z.literal('STOCK'),
   instrument: resolveStockInputSchema,
   direction: z.enum(['LONG', 'SHORT']),
-  quantity: z.string().regex(/^\d+(\.\d+)?$/)
-    .refine(value => Number(value) > 0),
+  quantity: positiveDecimalSchema,
   executions: z.array(createTradeExecutionSchema).min(1),
 });
 
@@ -56,8 +71,7 @@ const optionLegSchema = z.object({
   instrumentType: z.literal('OPTION'),
   instrument: resolveOptionInputSchema,
   direction: z.enum(['LONG', 'SHORT']),
-  quantity: z.string().regex(/^\d+(\.\d+)?$/)
-    .refine(value => Number(value) > 0),
+  quantity: positiveDecimalSchema,
   executions: z.array(createTradeExecutionSchema).min(1),
 });
 
