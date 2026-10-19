@@ -5,6 +5,7 @@ import type {
   CreateTradeRequest,
   CreateTradeResponse,
   ExecutionRecord,
+  ClosablePositionLotRecord
 } from './trades.schema.js';
 
 import type {
@@ -32,6 +33,101 @@ async function validateExecutionQuantity(
   if (!result.rows[0]?.matches) {
     throw new Error(
       'Total execution quantity must equal leg quantity'
+    );
+  }
+}
+
+async function validateClosingAllocations(
+  db: Db,
+  params: {
+    accountId: string;
+    instrumentId: string;
+    closingTradeType: 'BUY_TO_CLOSE' | 'SELL_TO_CLOSE';
+    executionQuantity: string;
+    allocations: {
+      positionLotId: string;
+      quantity: string;
+    }[];
+  }
+): Promise<void> {
+  if (params.allocations.length === 0) {
+    throw new Error('Closing execution requires lot allocations');
+  }
+
+  const lotIds = params.allocations.map(a => a.positionLotId);
+
+  if (new Set(lotIds).size !== lotIds.length) {
+    throw new Error('Duplicate position lot allocation');
+  }
+
+  const trades = createTradesRepository(db);
+
+  // Lock in deterministic order to reduce deadlock risk.
+  const lots = new Map<string, ClosablePositionLotRecord>();
+
+  for (const id of [...lotIds].sort()) {
+    const lot = await trades.findClosablePositionLot(id);
+
+    if (!lot) {
+      throw new Error(`Position lot not found: ${id}`);
+    }
+
+    lots.set(id, lot);
+  }
+
+  const expectedSide =
+    params.closingTradeType === 'BUY_TO_CLOSE'
+      ? 'SHORT'
+      : 'LONG';
+
+  for (const allocation of params.allocations) {
+    const lot = lots.get(allocation.positionLotId)!;
+
+    if (lot.account_id !== params.accountId) {
+      throw new Error('Position lot belongs to another account');
+    }
+
+    if (lot.instrument_id !== params.instrumentId) {
+      throw new Error('Position lot instrument mismatch');
+    }
+
+    if (lot.position_side !== expectedSide) {
+      throw new Error('Position lot side mismatch');
+    }
+  }
+
+  const result = await db.query<{
+    matches: boolean;
+    withinRemaining: boolean;
+  }>(
+    `SELECT
+      COALESCE(SUM(a.quantity), 0) = $2::numeric AS matches,
+      COALESCE(BOOL_AND(
+        a.quantity > 0
+        AND a.quantity <= a.remaining
+      ), false) AS "withinRemaining"
+    FROM unnest(
+      $1::numeric[],
+      $3::numeric[]
+    ) AS a(quantity, remaining)`,
+    [
+      params.allocations.map(a => a.quantity),
+      params.executionQuantity,
+      params.allocations.map(
+        a => lots.get(a.positionLotId)!.remaining_quantity
+      ),
+    ]
+  );
+
+  if (!result.rows[0]?.matches) {
+    throw new Error(
+      'Allocation quantities must equal execution quantity'
+    );
+  }
+
+  if (!result.rows[0]?.withinRemaining) {
+    throw new Error(
+      'Allocation exceeds remaining position lot quantity'
     );
   }
 }
