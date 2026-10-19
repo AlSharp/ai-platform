@@ -138,6 +138,15 @@ async function insertTrade(
 ): Promise<CreateTradeResponse> {
   const trades = createTradesRepository(db);
   const instruments = createInstrumentsRepository(db);
+  const campaigns = createCampaignsRepository(db);
+
+  const campaign = await campaigns.findById(params.campaignId);
+
+  if (!campaign) {
+    throw new Error('Campaign not found');
+  };
+
+  const accountId = campaign.account_id;
 
   const trade = await trades.createTrade({
     campaignId: params.campaignId,
@@ -200,6 +209,33 @@ async function insertTrade(
           positionLotId: lot.id,
           executionId: createdExecution.id,
         });
+      }
+
+      if (
+        leg.tradeType === 'BUY_TO_CLOSE' ||
+        leg.tradeType === 'SELL_TO_CLOSE'
+      ) {
+        const allocations = execution.allocations ?? [];
+
+        await validateClosingAllocations(db, {
+          accountId,
+          instrumentId: instrument.id,
+          closingTradeType: leg.tradeType,
+          executionQuantity: createdExecution.quantity,
+          allocations,
+        });
+
+        for (const allocation of allocations) {
+          await trades.createLotAllocation({
+            positionLotId: allocation.positionLotId,
+            closingExecutionId: createdExecution.id,
+            quantity: allocation.quantity,
+          });
+        }
+      } else if (execution.allocations?.length) {
+        throw new Error(
+          'Opening executions cannot contain closing allocations'
+        );
       }
     }
 
