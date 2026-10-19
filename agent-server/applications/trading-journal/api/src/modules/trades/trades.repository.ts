@@ -11,7 +11,9 @@ import type {
   TradeLegResponse,
   PositionLotRecord,
   PositionLotInsert,
-  PositionLotExecutionInsert
+  PositionLotExecutionInsert,
+  LotAllocationInsert,
+  LotAllocationRecord,
 } from './trades.schema.js';
 
 export function createTradesRepository(db: Db) {
@@ -306,6 +308,35 @@ export function createTradesRepository(db: Db) {
         VALUES ($1, $2)`,
         [params.positionLotId, params.executionId]
       );
+    },
+
+    async createLotAllocation(
+      params: LotAllocationInsert
+    ): Promise<LotAllocationRecord> {
+      const result = await db.query<LotAllocationRecord>(
+        `INSERT INTO lot_allocations (
+          position_lot_id,
+          closing_execution_id,
+          quantity
+        )
+        VALUES ($1, $2, $3::numeric)
+        RETURNING
+          id,
+          position_lot_id,
+          closing_execution_id,
+          quantity::text AS quantity,
+          to_char(
+            created_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS created_at`,
+        [
+          params.positionLotId,
+          params.closingExecutionId,
+          params.quantity,
+        ]
+      );
+
+      return result.rows[0]!;
     },
   };
 }
