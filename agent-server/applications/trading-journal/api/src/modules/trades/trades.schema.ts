@@ -139,7 +139,7 @@ export const legRecordSchema = z.object({
   trade_id: z.uuid(),
   instrument_id: z.uuid(),
   direction: z.enum(['LONG', 'SHORT']),
-  tradeType: tradeTypeSchema,
+  trade_type: tradeTypeSchema,
   quantity: z.string(),
   created_at: z.string(),
 });

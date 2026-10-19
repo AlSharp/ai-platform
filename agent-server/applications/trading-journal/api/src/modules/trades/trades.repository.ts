@@ -67,6 +67,7 @@ export function createTradesRepository(db: Db) {
           trade_id,
           instrument_id,
           direction,
+          trade_type,
           quantity::text AS quantity,
           to_char(
             created_at AT TIME ZONE 'UTC',
@@ -76,6 +77,7 @@ export function createTradesRepository(db: Db) {
           params.tradeId,
           params.instrumentId,
           params.direction,
+          params.tradeType,
           params.quantity,
         ]
       );
@@ -115,6 +117,7 @@ export function createTradesRepository(db: Db) {
           trade_id,
           instrument_id,
           direction,
+          trade_type,
           quantity::text AS quantity,
           to_char(
             created_at AT TIME ZONE 'UTC',
