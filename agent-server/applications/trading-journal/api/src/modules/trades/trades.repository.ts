@@ -5,7 +5,10 @@ import type {
   LegRecord,
   TradeInsert,
   LegInsert,
-  GetTradeResponse
+  GetTradeResponse,
+  ExecutionRecord,
+  ExecutionInsert,
+  TradeLegResponse,
 } from './trades.schema.js';
 
 export function createTradesRepository(db: Db) {
@@ -128,55 +131,123 @@ export function createTradesRepository(db: Db) {
     async findByCampaignId(
       campaignId: string
     ): Promise<GetTradeResponse[]> {
-      const result = await db.query<{
-        trade: TradeRecord;
-        legs: LegRecord[];
-      }>(
+      const result = await db.query<TradeRecord>(
         `SELECT
-          jsonb_build_object(
-            'id', t.id,
-            'campaign_id', t.campaign_id,
-            'actor_id', t.actor_id,
-            'source', t.source,
-            'action_type', t.action_type,
-            'occurred_at', to_char(
-              t.occurred_at AT TIME ZONE 'UTC',
-              'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
-            ),
-            'notes', t.notes,
-            'created_at', to_char(
-              t.created_at AT TIME ZONE 'UTC',
-              'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
-            )
-          ) AS trade,
-          COALESCE(
-            (
-              SELECT jsonb_agg(
-                jsonb_build_object(
-                  'id', l.id,
-                  'trade_id', l.trade_id,
-                  'instrument_id', l.instrument_id,
-                  'direction', l.direction,
-                  'quantity', l.quantity::text,
-                  'created_at', to_char(
-                    l.created_at AT TIME ZONE 'UTC',
-                    'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
-                  )
-                )
-                ORDER BY l.created_at ASC, l.id ASC
-              )
-              FROM legs l
-              WHERE l.trade_id = t.id
-            ),
-            '[]'::jsonb
-          ) AS legs
-        FROM trades t
-        WHERE t.campaign_id = $1
-        ORDER BY t.occurred_at ASC, t.id ASC`,
+          id,
+          campaign_id,
+          actor_id,
+          source,
+          action_type,
+          to_char(
+            occurred_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS occurred_at,
+          notes,
+          to_char(
+            created_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS created_at
+        FROM trades
+        WHERE campaign_id = $1
+        ORDER BY occurred_at ASC, id ASC`,
         [campaignId]
       );
 
+      return Promise.all(
+        result.rows.map(async trade => ({
+          trade,
+          legs: await this.findLegsWithExecutions(trade.id),
+        }))
+      );
+    },
+
+    async createExecution(
+      params: ExecutionInsert
+    ): Promise<ExecutionRecord> {
+      const result = await db.query<ExecutionRecord>(
+        `INSERT INTO executions (
+          leg_id,
+          broker_execution_id,
+          quantity,
+          price,
+          fees,
+          executed_at
+        )
+        VALUES (
+          $1,
+          $2,
+          $3::numeric,
+          $4::numeric,
+          $5::numeric,
+          $6
+        )
+        RETURNING
+          id,
+          leg_id,
+          broker_execution_id,
+          quantity::text AS quantity,
+          price::text AS price,
+          fees::text AS fees,
+          to_char(
+            executed_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS executed_at,
+          to_char(
+            created_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS created_at`,
+        [
+          params.legId,
+          params.brokerExecutionId ?? null,
+          params.quantity,
+          params.price,
+          params.fees,
+          params.executedAt,
+        ]
+      );
+
+      return result.rows[0]!;
+    },
+
+    async findExecutionsByLegId(
+      legId: string
+    ): Promise<ExecutionRecord[]> {
+      const result = await db.query<ExecutionRecord>(
+        `SELECT
+          id,
+          leg_id,
+          broker_execution_id,
+          quantity::text AS quantity,
+          price::text AS price,
+          fees::text AS fees,
+          to_char(
+            executed_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS executed_at,
+          to_char(
+            created_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS created_at
+        FROM executions
+        WHERE leg_id = $1
+        ORDER BY executed_at ASC, id ASC`,
+        [legId]
+      );
+
       return result.rows;
-    }
+    },
+
+    async findLegsWithExecutions(
+      tradeId: string
+    ): Promise<TradeLegResponse[]> {
+      const legs = await this.findLegsByTradeId(tradeId);
+
+      return Promise.all(
+        legs.map(async leg => ({
+          ...leg,
+          executions: await this.findExecutionsByLegId(leg.id),
+        }))
+      );
+    },
   };
 }

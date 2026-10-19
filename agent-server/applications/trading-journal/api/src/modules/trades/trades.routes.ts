@@ -80,7 +80,7 @@ export function registerTradeRoutes(
         });
       }
 
-      const legs = await repository.findLegsByTradeId(trade.id);
+      const legs = await repository.findLegsWithExecutions(trade.id);
 
       return { trade, legs };
     }

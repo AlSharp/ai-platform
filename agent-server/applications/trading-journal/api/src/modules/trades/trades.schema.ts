@@ -10,12 +10,46 @@ import {
   campaignRecordSchema,
 } from '../campaigns/campaigns.schema.js';
 
+export const executionRecordSchema = z.object({
+  id: z.uuid(),
+  leg_id: z.uuid(),
+  broker_execution_id: z.string().nullable(),
+  quantity: z.string(),
+  price: z.string(),
+  fees: z.string(),
+  executed_at: z.string(),
+  created_at: z.string(),
+});
+
+export type ExecutionRecord = z.infer<
+  typeof executionRecordSchema
+>;
+
+export const executionInsertSchema = z.object({
+  legId: z.uuid(),
+  brokerExecutionId: z.string().nullable().optional(),
+  quantity: z.string().regex(/^\d+(\.\d+)?$/)
+    .refine(value => Number(value) > 0),
+  price: z.string().regex(/^\d+(\.\d+)?$/),
+  fees: z.string().regex(/^\d+(\.\d+)?$/).default('0'),
+  executedAt: z.iso.datetime({ offset: true }),
+});
+
+export type ExecutionInsert = z.infer<
+  typeof executionInsertSchema
+>;
+
+const createTradeExecutionSchema = executionInsertSchema.omit({
+  legId: true,
+});
+
 const stockLegSchema = z.object({
   instrumentType: z.literal('STOCK'),
   instrument: resolveStockInputSchema,
   direction: z.enum(['LONG', 'SHORT']),
   quantity: z.string().regex(/^\d+(\.\d+)?$/)
     .refine(value => Number(value) > 0),
+  executions: z.array(createTradeExecutionSchema).min(1),
 });
 
 const optionLegSchema = z.object({
@@ -24,6 +58,7 @@ const optionLegSchema = z.object({
   direction: z.enum(['LONG', 'SHORT']),
   quantity: z.string().regex(/^\d+(\.\d+)?$/)
     .refine(value => Number(value) > 0),
+  executions: z.array(createTradeExecutionSchema).min(1),
 });
 
 export const createTradeRequestSchema = z.object({
@@ -102,9 +137,17 @@ export const legInsertSchema = z.object({
 
 export type LegInsert = z.infer<typeof legInsertSchema>;
 
+export const tradeLegResponseSchema = legRecordSchema.extend({
+  executions: z.array(executionRecordSchema),
+});
+
+export type TradeLegResponse = z.infer<
+  typeof tradeLegResponseSchema
+>;
+
 export const createTradeResponseSchema = z.object({
   trade: tradeRecordSchema,
-  legs: z.array(legRecordSchema),
+  legs: z.array(tradeLegResponseSchema),
 });
 
 export type CreateTradeResponse = z.infer<
@@ -125,7 +168,7 @@ export type CreateTradeWithCampaignRequest = z.infer<
 export const createTradeWithCampaignResponseSchema = z.object({
   campaign: campaignRecordSchema,
   trade: tradeRecordSchema,
-  legs: z.array(legRecordSchema),
+  legs: z.array(tradeLegResponseSchema),
 });
 
 export type CreateTradeWithCampaignResponse = z.infer<
