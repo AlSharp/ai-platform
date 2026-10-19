@@ -83,39 +83,45 @@ async function validateClosingAllocations(
     if (lot.position_side !== expectedSide) {
       throw new Error('Position lot side mismatch');
     }
-
-    if (
-      Date.parse(lot.opened_at) >
-      Date.parse(params.executionTime)
-    ) {
-      throw new Error(
-        'Closing execution cannot precede position lot opening'
-      );
-    }
   }
 
   const result = await db.query<{
     matches: boolean;
     withinRemaining: boolean;
+    chronological: boolean;
   }>(
     `SELECT
       COALESCE(SUM(a.quantity), 0) = $2::numeric AS matches,
       COALESCE(BOOL_AND(
         a.quantity > 0
         AND a.quantity <= a.remaining
-      ), false) AS "withinRemaining"
+      ), false) AS "withinRemaining",
+      COALESCE(BOOL_AND(
+        a.opened_at <= $4::timestamptz
+      ), false) AS chronological
     FROM unnest(
       $1::numeric[],
-      $3::numeric[]
-    ) AS a(quantity, remaining)`,
+      $3::numeric[],
+      $5::timestamptz[]
+    ) AS a(quantity, remaining, opened_at)`,
     [
       params.allocations.map(a => a.quantity),
       params.executionQuantity,
       params.allocations.map(
         a => lots.get(a.positionLotId)!.remaining_quantity
       ),
+      params.executionTime,
+      params.allocations.map(
+        a => lots.get(a.positionLotId)!.opened_at
+      ),
     ]
   );
+
+  if (!result.rows[0]?.chronological) {
+    throw new Error(
+      'Closing execution cannot precede position lot opening'
+    );
+  }
 
   if (!result.rows[0]?.matches) {
     throw new Error(
