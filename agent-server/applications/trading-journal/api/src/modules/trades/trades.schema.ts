@@ -215,3 +215,38 @@ export const listCampaignTradesResponseSchema = z.object({
 export type ListCampaignTradesResponse = z.infer<
   typeof listCampaignTradesResponseSchema
 >;
+
+export const positionLotRecordSchema = z.object({
+  id: z.uuid(),
+  opening_leg_id: z.uuid(),
+  position_side: z.enum(['LONG', 'SHORT']),
+  opened_quantity: positiveDecimalSchema,
+  fill_price: nonNegativeDecimalSchema,
+  opened_at: z.string(),
+  created_at: z.string(),
+});
+
+export type PositionLotRecord = z.infer<
+  typeof positionLotRecordSchema
+>;
+
+export const positionLotInsertSchema = z.object({
+  openingLegId: z.uuid(),
+  positionSide: z.enum(['LONG', 'SHORT']),
+  openedQuantity: positiveDecimalSchema,
+  fillPrice: nonNegativeDecimalSchema,
+  openedAt: z.iso.datetime({ offset: true }),
+});
+
+export type PositionLotInsert = z.infer<
+  typeof positionLotInsertSchema
+>;
+
+export const positionLotExecutionInsertSchema = z.object({
+  positionLotId: z.uuid(),
+  executionId: z.uuid(),
+});
+
+export type PositionLotExecutionInsert = z.infer<
+  typeof positionLotExecutionInsertSchema
+>;

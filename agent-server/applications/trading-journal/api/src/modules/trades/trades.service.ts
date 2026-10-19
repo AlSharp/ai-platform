@@ -77,16 +77,34 @@ async function insertTrade(
     const executions: ExecutionRecord[] = [];
 
     for (const execution of leg.executions) {
-      executions.push(
-        await trades.createExecution({
-          legId: createdLeg.id,
-          brokerExecutionId: execution.brokerExecutionId,
-          quantity: execution.quantity,
-          price: execution.price,
-          fees: execution.fees,
-          executedAt: execution.executedAt,
-        })
-      )
+      const createdExecution = await trades.createExecution({
+        legId: createdLeg.id,
+        brokerExecutionId: execution.brokerExecutionId,
+        quantity: execution.quantity,
+        price: execution.price,
+        fees: execution.fees,
+        executedAt: execution.executedAt,
+      });
+      executions.push(createdExecution);
+
+      if (
+        leg.tradeType === 'BUY_TO_OPEN' ||
+        leg.tradeType === 'SELL_TO_OPEN'
+      ) {
+        const lot = await trades.createPositionLot({
+          openingLegId: createdLeg.id,
+          positionSide:
+            leg.tradeType === 'BUY_TO_OPEN' ? 'LONG' : 'SHORT',
+          openedQuantity: createdExecution.quantity,
+          fillPrice: createdExecution.price,
+          openedAt: createdExecution.executed_at,
+        });
+
+        await trades.linkPositionLotExecution({
+          positionLotId: lot.id,
+          executionId: createdExecution.id,
+        });
+      }
     }
 
     legs.push({

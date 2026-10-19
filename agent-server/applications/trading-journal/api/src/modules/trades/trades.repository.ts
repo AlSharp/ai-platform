@@ -9,6 +9,9 @@ import type {
   ExecutionRecord,
   ExecutionInsert,
   TradeLegResponse,
+  PositionLotRecord,
+  PositionLotInsert,
+  PositionLotExecutionInsert
 } from './trades.schema.js';
 
 export function createTradesRepository(db: Db) {
@@ -251,6 +254,57 @@ export function createTradesRepository(db: Db) {
           ...leg,
           executions: await this.findExecutionsByLegId(leg.id),
         }))
+      );
+    },
+
+    async createPositionLot(
+      params: PositionLotInsert
+    ): Promise<PositionLotRecord> {
+      const result = await db.query<PositionLotRecord>(
+        `INSERT INTO position_lots (
+          opening_leg_id,
+          position_side,
+          opened_quantity,
+          fill_price,
+          opened_at
+        )
+        VALUES ($1, $2, $3::numeric, $4::numeric, $5)
+        RETURNING
+          id,
+          opening_leg_id,
+          position_side,
+          opened_quantity::text AS opened_quantity,
+          fill_price::text AS fill_price,
+          to_char(
+            opened_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS opened_at,
+          to_char(
+            created_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS created_at`,
+        [
+          params.openingLegId,
+          params.positionSide,
+          params.openedQuantity,
+          params.fillPrice,
+          params.openedAt,
+        ]
+      );
+
+      return result.rows[0]!;
+    },
+
+    async linkPositionLotExecution(
+      params: PositionLotExecutionInsert
+    ): Promise<void> {
+      await db.query(
+        `INSERT INTO position_lot_executions (
+          position_lot_id,
+          execution_id
+        )
+        VALUES ($1, $2)`,
+        [params.positionLotId, params.executionId]
       );
     },
   };
