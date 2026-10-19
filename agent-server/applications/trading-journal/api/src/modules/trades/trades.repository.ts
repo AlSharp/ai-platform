@@ -356,6 +356,10 @@ export function createTradesRepository(db: Db) {
           c.account_id,
           l.instrument_id,
           pl.position_side,
+          to_char(
+            pl.opened_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS opened_at,
           (
             pl.opened_quantity -
             COALESCE(SUM(la.quantity), 0)

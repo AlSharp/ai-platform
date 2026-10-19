@@ -292,8 +292,25 @@ export const closablePositionLotRecordSchema = z.object({
   instrument_id: z.uuid(),
   position_side: z.enum(['LONG', 'SHORT']),
   remaining_quantity: nonNegativeDecimalSchema,
+  opened_at: z.string(),
 });
 
 export type ClosablePositionLotRecord = z.infer<
   typeof closablePositionLotRecordSchema
+>;
+
+export const validateClosingAllocationsInputSchema = z.object({
+  accountId: z.uuid(),
+  instrumentId: z.uuid(),
+  closingTradeType: z.enum([
+    'BUY_TO_CLOSE',
+    'SELL_TO_CLOSE',
+  ]),
+  executionQuantity: positiveDecimalSchema,
+  executionTime: z.iso.datetime({ offset: true }),
+  allocations: z.array(closingLotAllocationSchema).min(1),
+});
+
+export type ValidateClosingAllocationsInput = z.infer<
+  typeof validateClosingAllocationsInputSchema
 >;

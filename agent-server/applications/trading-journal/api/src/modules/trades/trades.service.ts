@@ -5,12 +5,10 @@ import type {
   CreateTradeRequest,
   CreateTradeResponse,
   ExecutionRecord,
-  ClosablePositionLotRecord
-} from './trades.schema.js';
-
-import type {
   CreateTradeWithCampaignRequest,
   CreateTradeWithCampaignResponse,
+  ClosablePositionLotRecord,
+  ValidateClosingAllocationsInput
 } from './trades.schema.js';
 
 import { createCampaignsRepository } from '../campaigns/campaigns.repository.js';
@@ -39,16 +37,7 @@ async function validateExecutionQuantity(
 
 async function validateClosingAllocations(
   db: Db,
-  params: {
-    accountId: string;
-    instrumentId: string;
-    closingTradeType: 'BUY_TO_CLOSE' | 'SELL_TO_CLOSE';
-    executionQuantity: string;
-    allocations: {
-      positionLotId: string;
-      quantity: string;
-    }[];
-  }
+  params: ValidateClosingAllocationsInput
 ): Promise<void> {
   if (params.allocations.length === 0) {
     throw new Error('Closing execution requires lot allocations');
@@ -93,6 +82,15 @@ async function validateClosingAllocations(
 
     if (lot.position_side !== expectedSide) {
       throw new Error('Position lot side mismatch');
+    }
+
+    if (
+      Date.parse(lot.opened_at) >
+      Date.parse(params.executionTime)
+    ) {
+      throw new Error(
+        'Closing execution cannot precede position lot opening'
+      );
     }
   }
 
@@ -223,6 +221,7 @@ async function insertTrade(
           closingTradeType: leg.tradeType,
           executionQuantity: createdExecution.quantity,
           allocations,
+          executionTime: createdExecution.executed_at,
         });
 
         for (const allocation of allocations) {
