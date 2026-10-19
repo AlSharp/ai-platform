@@ -26,6 +26,37 @@ const nonNegativeDecimalSchema = z.string()
     'Must be a non-negative decimal with at most 14 integer digits and 6 fractional digits'
   );
 
+export const closingLotAllocationSchema = z.object({
+  positionLotId: z.uuid(),
+  quantity: positiveDecimalSchema,
+});
+
+export type ClosingLotAllocation = z.infer<
+  typeof closingLotAllocationSchema
+>;
+
+export const lotAllocationRecordSchema = z.object({
+  id: z.uuid(),
+  position_lot_id: z.uuid(),
+  closing_execution_id: z.uuid(),
+  quantity: positiveDecimalSchema,
+  created_at: z.string(),
+});
+
+export type LotAllocationRecord = z.infer<
+  typeof lotAllocationRecordSchema
+>;
+
+export const lotAllocationInsertSchema = z.object({
+  positionLotId: z.uuid(),
+  closingExecutionId: z.uuid(),
+  quantity: positiveDecimalSchema,
+});
+
+export type LotAllocationInsert = z.infer<
+  typeof lotAllocationInsertSchema
+>;
+
 export const executionRecordSchema = z.object({
   id: z.uuid(),
   leg_id: z.uuid(),
@@ -55,9 +86,13 @@ export type ExecutionInsert = z.infer<
   typeof executionInsertSchema
 >;
 
-const createTradeExecutionSchema = executionInsertSchema.omit({
-  legId: true,
-});
+const createTradeExecutionSchema = executionInsertSchema
+  .omit({
+    legId: true,
+  })
+  .extend({
+    allocations: z.array(closingLotAllocationSchema).optional(),
+  });
 
 export const tradeTypeSchema = z.enum([
   'BUY_TO_OPEN',
