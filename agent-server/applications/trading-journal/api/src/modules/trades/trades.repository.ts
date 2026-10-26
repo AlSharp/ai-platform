@@ -448,10 +448,14 @@ export function createTradesRepository(db: Db) {
           to_char(
             e.executed_at AT TIME ZONE 'UTC',
             'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
-          ) AS executed_at
+          ) AS executed_at,
+          fo.realized_pl::text AS realized_pl,
+          fo.calculation_version
         FROM lot_allocations la
         JOIN executions e
           ON e.id = la.closing_execution_id
+        LEFT JOIN financial_outcomes fo
+          ON fo.lot_allocation_id = la.id
         WHERE la.position_lot_id = $1
         ORDER BY
           e.executed_at ASC,

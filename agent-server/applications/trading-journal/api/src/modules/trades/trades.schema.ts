@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { nullable, z } from 'zod';
 
 import {
   resolveStockInputSchema,
@@ -346,6 +346,8 @@ export const positionLotClosingRecordSchema = z.object({
   closing_price: nonNegativeDecimalSchema,
   closing_fees: nonNegativeDecimalSchema,
   executed_at: z.string(),
+  realized_pl: z.string().nullable(),
+  calculation_version: z.string().nullable(),
 });
 
 export type PositionLotClosingRecord = z.infer<
