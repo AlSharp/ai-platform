@@ -460,5 +460,57 @@ export function createTradesRepository(db: Db) {
 
       return result.rows;
     },
+
+    async calculateRealizedPl(
+      lotAllocationId: string
+    ): Promise<string> {
+      const result = await db.query<{ realized_pl: string }>(
+        `SELECT
+          ROUND(
+            (
+              CASE pl.position_side
+                WHEN 'LONG' THEN
+                  (ce.price - pl.fill_price)
+                WHEN 'SHORT' THEN
+                  (pl.fill_price - ce.price)
+              END
+              * la.quantity
+              * i.multiplier
+            )
+            - (
+              oe.fees
+              * la.quantity
+              / oe.quantity
+            )
+            - (
+              ce.fees
+              * la.quantity
+              / ce.quantity
+            ),
+            6
+          )::text AS realized_pl
+        FROM lot_allocations la
+        JOIN position_lots pl
+          ON pl.id = la.position_lot_id
+        JOIN legs l
+          ON l.id = pl.opening_leg_id
+        JOIN instruments i
+          ON i.id = l.instrument_id
+        JOIN position_lot_executions ple
+          ON ple.position_lot_id = pl.id
+        JOIN executions oe
+          ON oe.id = ple.execution_id
+        JOIN executions ce
+          ON ce.id = la.closing_execution_id
+        WHERE la.id = $1`,
+        [lotAllocationId]
+      );
+
+      if (!result.rows[0]) {
+        throw new Error('Lot allocation not found');
+      }
+
+      return result.rows[0].realized_pl;
+    },
   };
 }
