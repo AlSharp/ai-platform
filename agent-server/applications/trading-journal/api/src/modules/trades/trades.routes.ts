@@ -10,7 +10,9 @@ import {
   getTradePathParamsSchema,
   getTradeResponseSchema,
   openPositionLotsQuerySchema,
-  openPositionLotsResponseSchema
+  openPositionLotsResponseSchema,
+  positionLotClosingsParamsSchema,
+  positionLotClosingsResponseSchema,
 } from './trades.schema.js';
 
 import { errorResponseSchema } from '../../shared/schemas/error.schemas.js';
@@ -104,6 +106,25 @@ export function registerTradeRoutes(
       );
 
       return { lots };
+    }
+  );
+
+  app.withTypeProvider<ZodTypeProvider>().get(
+    '/position-lots/:id/closings',
+    {
+      schema: {
+        params: positionLotClosingsParamsSchema,
+        response: {
+          200: positionLotClosingsResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const closings = await repository.findClosingsByPositionLotId(
+        request.params.id
+      );
+
+      return { closings };
     }
   );
 }

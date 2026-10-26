@@ -351,3 +351,11 @@ export const positionLotClosingRecordSchema = z.object({
 export type PositionLotClosingRecord = z.infer<
   typeof positionLotClosingRecordSchema
 >;
+
+export const positionLotClosingsParamsSchema = z.object({
+  id: z.uuid(),
+});
+
+export const positionLotClosingsResponseSchema = z.object({
+  closings: z.array(positionLotClosingRecordSchema),
+});
