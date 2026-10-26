@@ -329,3 +329,25 @@ export const openPositionLotRecordSchema = z.object({
 export type OpenPositionLotRecord = z.infer<
   typeof openPositionLotRecordSchema
 >;
+
+export const openPositionLotsQuerySchema = z.object({
+  accountId: z.uuid(),
+});
+
+export const openPositionLotsResponseSchema = z.object({
+  lots: z.array(openPositionLotRecordSchema),
+});
+
+export const positionLotClosingRecordSchema = z.object({
+  allocation_id: z.uuid(),
+  position_lot_id: z.uuid(),
+  closing_execution_id: z.uuid(),
+  quantity: positiveDecimalSchema,
+  closing_price: nonNegativeDecimalSchema,
+  closing_fees: nonNegativeDecimalSchema,
+  executed_at: z.string(),
+});
+
+export type PositionLotClosingRecord = z.infer<
+  typeof positionLotClosingRecordSchema
+>;

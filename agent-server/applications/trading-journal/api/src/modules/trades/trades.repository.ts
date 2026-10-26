@@ -15,7 +15,8 @@ import type {
   LotAllocationInsert,
   LotAllocationRecord,
   ClosablePositionLotRecord,
-  OpenPositionLotRecord
+  OpenPositionLotRecord,
+  PositionLotClosingRecord,
 } from './trades.schema.js';
 
 export function createTradesRepository(db: Db) {
@@ -427,6 +428,34 @@ export function createTradesRepository(db: Db) {
           pl.opened_at ASC,
           pl.id ASC`,
         [accountId]
+      );
+
+      return result.rows;
+    },
+
+    async findClosingsByPositionLotId(
+      positionLotId: string
+    ): Promise<PositionLotClosingRecord[]> {
+      const result = await db.query<PositionLotClosingRecord>(
+        `SELECT
+          la.id AS allocation_id,
+          la.position_lot_id,
+          la.closing_execution_id,
+          la.quantity::text AS quantity,
+          e.price::text AS closing_price,
+          e.fees::text AS closing_fees,
+          to_char(
+            e.executed_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS executed_at
+        FROM lot_allocations la
+        JOIN executions e
+          ON e.id = la.closing_execution_id
+        WHERE la.position_lot_id = $1
+        ORDER BY
+          e.executed_at ASC,
+          la.id ASC`,
+        [positionLotId]
       );
 
       return result.rows;
