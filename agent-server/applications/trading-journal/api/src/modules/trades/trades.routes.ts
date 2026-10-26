@@ -9,6 +9,8 @@ import {
   createTradeWithCampaignResponseSchema,
   getTradePathParamsSchema,
   getTradeResponseSchema,
+  openPositionLotsQuerySchema,
+  openPositionLotsResponseSchema
 } from './trades.schema.js';
 
 import { errorResponseSchema } from '../../shared/schemas/error.schemas.js';
@@ -83,6 +85,25 @@ export function registerTradeRoutes(
       const legs = await repository.findLegsWithExecutions(trade.id);
 
       return { trade, legs };
+    }
+  );
+
+  app.withTypeProvider<ZodTypeProvider>().get(
+    '/position-lots/open',
+    {
+      schema: {
+        querystring: openPositionLotsQuerySchema,
+        response: {
+          200: openPositionLotsResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      const lots = await repository.findOpenPositionLotsByAccountId(
+        request.query.accountId
+      );
+
+      return { lots };
     }
   );
 }
