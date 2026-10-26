@@ -314,3 +314,18 @@ export const validateClosingAllocationsInputSchema = z.object({
 export type ValidateClosingAllocationsInput = z.infer<
   typeof validateClosingAllocationsInputSchema
 >;
+
+export const openPositionLotRecordSchema = z.object({
+  id: z.uuid(),
+  account_id: z.uuid(),
+  instrument_id: z.uuid(),
+  position_side: z.enum(['LONG', 'SHORT']),
+  opened_quantity: positiveDecimalSchema,
+  remaining_quantity: positiveDecimalSchema,
+  fill_price: nonNegativeDecimalSchema,
+  opened_at: z.string(),
+});
+
+export type OpenPositionLotRecord = z.infer<
+  typeof openPositionLotRecordSchema
+>;

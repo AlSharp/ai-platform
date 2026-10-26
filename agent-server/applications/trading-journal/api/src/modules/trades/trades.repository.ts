@@ -14,7 +14,8 @@ import type {
   PositionLotExecutionInsert,
   LotAllocationInsert,
   LotAllocationRecord,
-  ClosablePositionLotRecord
+  ClosablePositionLotRecord,
+  OpenPositionLotRecord
 } from './trades.schema.js';
 
 export function createTradesRepository(db: Db) {
@@ -384,6 +385,51 @@ export function createTradesRepository(db: Db) {
       );
 
       return result.rows[0] ?? null;
+    },
+
+    async findOpenPositionLotsByAccountId(
+      accountId: string
+    ): Promise<OpenPositionLotRecord[]> {
+      const result = await db.query<OpenPositionLotRecord>(
+        `SELECT
+          pl.id,
+          c.account_id,
+          l.instrument_id,
+          pl.position_side,
+          pl.opened_quantity::text AS opened_quantity,
+          (
+            pl.opened_quantity -
+            COALESCE(SUM(la.quantity), 0)
+          )::text AS remaining_quantity,
+          pl.fill_price::text AS fill_price,
+          to_char(
+            pl.opened_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS opened_at
+        FROM position_lots pl
+        JOIN legs l
+          ON l.id = pl.opening_leg_id
+        JOIN trades t
+          ON t.id = l.trade_id
+        JOIN campaigns c
+          ON c.id = t.campaign_id
+        LEFT JOIN lot_allocations la
+          ON la.position_lot_id = pl.id
+        WHERE c.account_id = $1
+        GROUP BY
+          pl.id,
+          c.account_id,
+          l.instrument_id
+        HAVING
+          pl.opened_quantity -
+          COALESCE(SUM(la.quantity), 0) > 0
+        ORDER BY
+          pl.opened_at ASC,
+          pl.id ASC`,
+        [accountId]
+      );
+
+      return result.rows;
     },
   };
 }
