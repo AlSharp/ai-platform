@@ -359,3 +359,15 @@ export const positionLotClosingsParamsSchema = z.object({
 export const positionLotClosingsResponseSchema = z.object({
   closings: z.array(positionLotClosingRecordSchema),
 });
+
+export const financialOutcomeRecordSchema = z.object({
+  id: z.uuid(),
+  lot_allocation_id: z.uuid(),
+  realized_pl: z.string(),
+  calculation_version: z.string(),
+  calculated_at: z.string(),
+});
+
+export type FinancialOutcomeRecord = z.infer<
+  typeof financialOutcomeRecordSchema
+>;

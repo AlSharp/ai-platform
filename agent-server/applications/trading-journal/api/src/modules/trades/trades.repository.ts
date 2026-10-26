@@ -17,6 +17,7 @@ import type {
   ClosablePositionLotRecord,
   OpenPositionLotRecord,
   PositionLotClosingRecord,
+  FinancialOutcomeRecord,
 } from './trades.schema.js';
 
 export function createTradesRepository(db: Db) {
@@ -511,6 +512,35 @@ export function createTradesRepository(db: Db) {
       }
 
       return result.rows[0].realized_pl;
+    },
+
+    async createFinancialOutcome(
+      lotAllocationId: string
+    ): Promise<FinancialOutcomeRecord> {
+      const realizedPl = await this.calculateRealizedPl(
+        lotAllocationId
+      );
+
+      const result = await db.query<FinancialOutcomeRecord>(
+        `INSERT INTO financial_outcomes (
+          lot_allocation_id,
+          realized_pl,
+          calculation_version
+        )
+        VALUES ($1, $2::numeric, $3)
+        RETURNING
+          id,
+          lot_allocation_id,
+          realized_pl::text AS realized_pl,
+          calculation_version,
+          to_char(
+            calculated_at AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+          ) AS calculated_at`,
+        [lotAllocationId, realizedPl, 'v1']
+      );
+
+      return result.rows[0]!;
     },
   };
 }

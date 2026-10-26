@@ -231,11 +231,13 @@ async function insertTrade(
         });
 
         for (const allocation of allocations) {
-          await trades.createLotAllocation({
+          const createdAllocation = await trades.createLotAllocation({
             positionLotId: allocation.positionLotId,
             closingExecutionId: createdExecution.id,
             quantity: allocation.quantity,
           });
+
+          await trades.createFinancialOutcome(createdAllocation.id);
         }
       } else if (execution.allocations?.length) {
         throw new Error(
