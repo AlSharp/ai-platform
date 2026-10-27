@@ -18,6 +18,7 @@ import type {
   OpenPositionLotRecord,
   PositionLotClosingRecord,
   FinancialOutcomeRecord,
+  RealizedPlSummaryResponse
 } from './trades.schema.js';
 
 export function createTradesRepository(db: Db) {
@@ -545,6 +546,38 @@ export function createTradesRepository(db: Db) {
       );
 
       return result.rows[0]!;
+    },
+
+    async findRealizedPlSummaryByAccountId(
+      accountId: string
+    ): Promise<RealizedPlSummaryResponse> {
+      const result = await db.query<{
+        realized_pl: string;
+        closing_allocations: number;
+      }>(
+        `SELECT
+          COALESCE(SUM(fo.realized_pl), 0)::text AS realized_pl,
+          COUNT(fo.id)::int AS closing_allocations
+        FROM financial_outcomes fo
+        JOIN lot_allocations la
+          ON la.id = fo.lot_allocation_id
+        JOIN position_lots pl
+          ON pl.id = la.position_lot_id
+        JOIN legs l
+          ON l.id = pl.opening_leg_id
+        JOIN trades t
+          ON t.id = l.trade_id
+        JOIN campaigns c
+          ON c.id = t.campaign_id
+        WHERE c.account_id = $1`,
+        [accountId]
+      );
+
+      return {
+        account_id: accountId,
+        realized_pl: result.rows[0]!.realized_pl,
+        closing_allocations: result.rows[0]!.closing_allocations,
+      };
     },
   };
 }

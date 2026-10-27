@@ -373,3 +373,17 @@ export const financialOutcomeRecordSchema = z.object({
 export type FinancialOutcomeRecord = z.infer<
   typeof financialOutcomeRecordSchema
 >;
+
+export const realizedPlSummaryQuerySchema = z.object({
+  accountId: z.uuid(),
+});
+
+export const realizedPlSummaryResponseSchema = z.object({
+  account_id: z.uuid(),
+  realized_pl: z.string(),
+  closing_allocations: z.number().int().nonnegative(),
+});
+
+export type RealizedPlSummaryResponse = z.infer<
+  typeof realizedPlSummaryResponseSchema
+>;

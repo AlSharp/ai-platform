@@ -13,6 +13,8 @@ import {
   openPositionLotsResponseSchema,
   positionLotClosingsParamsSchema,
   positionLotClosingsResponseSchema,
+  realizedPlSummaryQuerySchema,
+  realizedPlSummaryResponseSchema
 } from './trades.schema.js';
 
 import { errorResponseSchema } from '../../shared/schemas/error.schemas.js';
@@ -125,6 +127,23 @@ export function registerTradeRoutes(
       );
 
       return { closings };
+    }
+  );
+
+  app.withTypeProvider<ZodTypeProvider>().get(
+    '/trades/realized-pl',
+    {
+      schema: {
+        querystring: realizedPlSummaryQuerySchema,
+        response: {
+          200: realizedPlSummaryResponseSchema,
+        },
+      },
+    },
+    async (request) => {
+      return repository.findRealizedPlSummaryByAccountId(
+        request.query.accountId
+      );
     }
   );
 }
