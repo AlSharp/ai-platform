@@ -1,6 +1,6 @@
 COMPOSE = docker compose --env-file .env -f compose.yml
 COMPOSE_PROD = docker compose --env-file .env.production -f compose.yml -f compose.production.yml
-JOURNAL_API = applications/trading-journal/api
+JOURNAL_API = applications/oktrade/trading-journal/api
 
 .PHONY: db-up db-down db-status db-logs db-migrate db-migrate-status journal-dev journal-build journal-typecheck prod-up prod-status
 

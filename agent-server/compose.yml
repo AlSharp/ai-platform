@@ -37,9 +37,9 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - ./applications/trading-journal/${APP_ENV_FILE:-.env}
+      - ./applications/oktrade/trading-journal/${APP_ENV_FILE:-.env}
     volumes:
-      - ./applications/trading-journal/db/migrations:/db/migrations
+      - ./applications/oktrade/trading-journal/db/migrations:/db/migrations
     networks:
       - agent-backend
 
