@@ -1,0 +1,11 @@
+@import '@mantine/core/styles.css';
+
+@layer tailwind {
+  @tailwind base;
+}
+@tailwind components;
+@tailwind utilities;
+
+.stepper-step-error span.mantine-Stepper-stepIcon {
+  background-color: #fa5252;
+}
