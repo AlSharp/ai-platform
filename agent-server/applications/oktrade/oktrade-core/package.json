@@ -12,13 +12,13 @@
   "author": "Albert Sharapov",
   "license": "SEE LICENSE IN LICENSE.md",
   "dependencies": {
-    "axios": "^1.7.0",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "axios": "^1.21.1",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
     "oktrade": "file:../packages/oktrade",
-    "pg": "^8.12.0",
-    "pg-pool": "^3.6.2",
-    "uuid": "^9.0.1"
+    "pg": "^8.23.1",
+    "pg-pool": "^3.14.0",
+    "uuid": "^14.0.3"
   },
   "devDependencies": {
     "camelcase-keys": "^9.1.3",

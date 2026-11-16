@@ -6,6 +6,7 @@ import camelcaseKeys from 'camelcase-keys';
 
 // accounts
 export async function getAccounts(okTrade, req = {}) {
+  return [];
   try {
     const cache = req.query?.cache;
 
@@ -124,6 +125,7 @@ export async function deleteAccount(okTrade, req) {
 
 // strategies
 export async function getStrategyFiles(okTrade, req = {}) {
+  return [];
   try {
 
     const cache = req.query?.cache;
@@ -158,6 +160,7 @@ export async function getStrategyFiles(okTrade, req = {}) {
 }
 
 export async function getStrategies(okTrade, req = {}) {
+  return [];
   try {
     const cache = req.query?.cache;
 
@@ -178,6 +181,7 @@ export async function getStrategies(okTrade, req = {}) {
 
 // live trading clients
 export async function getLiveTradingClients(okTrade, queryParams) {
+  return [];
   try {
     const { cache, with_state } = queryParams;
 

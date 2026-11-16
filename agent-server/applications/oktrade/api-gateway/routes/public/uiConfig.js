@@ -5,13 +5,17 @@ const router = express.Router();
 
 router.get('/uiconfig', async (req, res) => {
   try {
-    const ui_config = await pool.query(
-      "SELECT * FROM ui_configuration"
-    );
+    // const ui_config = await pool.query(
+    //   "SELECT * FROM ui_configuration"
+    // );
+    // res.status(200).json({
+    //   success: true,
+    //   data: ui_config.rows
+    // })
     res.status(200).json({
       success: true,
-      data: ui_config.rows
-    })
+      data: []
+    });
   }
   catch(error) {
     console.log(error);

@@ -7,14 +7,16 @@ export function cn(...inputs) {
 }
 
 export function getHost() {
-  return 'https://trade.blockberrypi.com';
+  return import.meta.env.PROD
+    ? 'https://trade.blockberrypi.com'
+    : 'http://localhost:5173'
 }
 
 export function getEnv() {
   const host = window.location.host;
 
   if (host === 'trade.blockberrypi.com') return 'production';
-  if (host === 'trade-dev.blockberrypi.com') return 'development';
+  if (host === 'localhost') return 'development';
 
   return '';
 }
